@@ -2,6 +2,8 @@ import {assert} from './assert';
 import fs from 'fs/promises';
 import { nanoid } from 'nanoid';
 import { fixFormCompletion, fixFormDescription, FormAccess, FormCompletion, FormDescription } from './formdesc';
+import e from 'express';
+import { readFile } from 'fs';
 
 interface FormFileContents {
     templates : Array<FormDescription>;
@@ -28,13 +30,41 @@ function fixFormFileContents(x : any) : FormFileContents {
 
 class FileFormAccess implements FormAccess {
     dirty : boolean;
+    path : string;
 
-    constructor() {
+    private cleanDirty(){
         this.dirty = false;
+    }
+
+    private waitTillClean(){
+        while(this.dirty){
+            setTimeout(() => {},0);
+        }
+    }
+
+    constructor(fileName?: string) {
+        this.dirty = false;
+        if(fileName === undefined || fileName){
+            this.path =  "./forms.json";
+        } else{
+            this.path = "./" + fileName;
+        }
+
+        try{
+            if (!fs.access(this.path)){
+                this.dirty = true;
+                fs.copyFile('./initial-forms.json', this.path)
+                .then(this.cleanDirty);
+            }
+        } catch(err){
+            console.error(err);
+        }
     }
     /** Return a list of all form description names. */
     listAllForms (): Array<string>{
-
+        this.waitTillClean();
+        let data = fs.readFile(this.path,'utf-8');
+        console.log(data);
     }
 
     /** Return the structure of the named form, or undefined if there is no such form.
@@ -44,7 +74,7 @@ class FileFormAccess implements FormAccess {
     getForm (name: string): FormDescription | undefined{
 
     }
-        /**  
+    /**  
      * Create a new instance of a form with given contents.
      * If the name doesn't match a form, undefined is returned.
      * If the number of slot contents doesn't match, undefined is returned.
