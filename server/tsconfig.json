@@ -1,0 +1,17 @@
+{
+	"compilerOptions": {
+		"noEmitOnError": true,
+		"removeComments": false,
+		"sourceMap": true,
+		"strict": true,
+		"esModuleInterop": true,
+		"moduleResolution": "node",
+		"target": "es2017",
+		"module": "es2022",
+		"rootDir": "src",
+		"outDir": "build"
+	},
+	"exclude": [
+		"node_modules"
+	]
+}

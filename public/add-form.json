@@ -1,0 +1,112 @@
+{
+    "name": "Add Form",
+    "image": "add-form.png",
+    "debug" : false,
+    "slots": [
+        { 
+            "description": "Student Name",
+            "location": {
+                "x": 18, "y": 19,
+                "h": 4, "w": 48
+            }
+        },
+        {
+            "description": "Student ID",
+            "location": {
+                "x": 18, "y": 25,
+                "h": 4, "w": 32 
+            }
+        },
+        {
+            "description": "Student Email",
+            "location": {
+                "x": 18, "y": 30,
+                "h": 4, "w": 32 
+            }
+        },
+        {
+            "description": "Curricular Code",
+            "location": {
+                "x":27, "y":43,
+                "h": 4, "w":16
+            }
+        },
+        {
+            "description": "Course Name",
+            "location": {
+                "x":27, "y": 49,
+                "h": 4, "w":16
+            }
+        },
+        {
+            "description": "Course Section 1",
+            "location": {
+                "x": 27, "y": 54,
+                "h": 4, "w": 16
+            }
+        },
+        {
+            "description": "Course Section 2",
+            "location": {
+                "x": 47, "y": 54,
+                "h": 4, "w": 16
+            }
+        },
+        {
+            "description": "Course Section 3",
+            "location": {
+                "x": 66, "y": 54,
+                "h": 4, "w": 16
+            }
+        },
+        {
+            "description": "Override Closed Section",
+            "location": {
+                "x": 8, "y": 68,
+                "h": 1.7, "w": 1.7
+            }
+        },
+        {
+            "description": "Override Time Conflict",
+            "location": {
+                "x": 8, "y": 74,
+                "h": 1.7, "w": 1.7
+            }
+        },
+        {
+            "description": "Override Missing Pre-Req",
+            "location": {
+                "x": 8, "y": 79,
+                "h": 1.7, "w": 1.7
+            }
+        },
+        {
+            "description": "Instructor Name",
+            "location": {
+                "x": 27, "y": 90,
+                "h": 4, "w": 48
+            }
+        },
+        {
+            "description": "Instructor Date",
+            "location": {
+                "x": 79, "y": 90,
+                "h": 4, "w": 16
+            }
+        },
+        {
+            "description": "Adviser Name",
+            "location": {
+                "x": 27, "y": 96,
+                "h": 4, "w": 48
+            }
+        },
+        {
+            "description": "Adviser Date",
+            "location": {
+                "x": 79, "y": 96,
+                "h": 4, "w": 16
+            }
+        }
+     ]
+}
