@@ -4,6 +4,7 @@ import { nanoid } from 'nanoid';
 import { fixFormCompletion, fixFormDescription, FormAccess, FormCompletion, FormDescription } from './formdesc';
 import e from 'express';
 import { readFile } from 'fs';
+import { formatWithOptions } from 'util';
 
 interface FormFileContents {
     templates: Array<FormDescription>;
@@ -57,6 +58,10 @@ class FileFormAccess implements FormAccess {
     listAllForms(): Array<string> {
         this.waitTillClean();
         let arr: Array<string> = new Array<string>();
+
+        if(this.contents !== undefined){
+            this.contents.templates.forEach((form) => arr.push(form.name));
+        }
 
         return arr;
     }
