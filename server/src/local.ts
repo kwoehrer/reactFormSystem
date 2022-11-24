@@ -71,7 +71,13 @@ class FileFormAccess implements FormAccess {
      * @return form description (if the name is valid) or undefined (otherwise)
      */
     getForm(name: string): FormDescription | undefined {
-        return undefined;
+        this.waitTillClean();
+        let result : FormDescription | undefined = undefined;
+        if(this.contents !== undefined){
+            this.contents.templates.filter(currName => currName.name === name).forEach((form) =>  result = form);
+        }
+
+        return result;
     }
     /**  
      * Create a new instance of a form with given contents.
