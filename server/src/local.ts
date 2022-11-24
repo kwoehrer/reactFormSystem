@@ -92,12 +92,12 @@ class FileFormAccess implements FormAccess {
 
         //Write temp file
         fs.writeFile("temp", JSON.stringify(this.contents)).then(() => {
-            fs.rename("temp", this.path).then(() => {
-                this.currentlyWriting = false;
-                if(this.dirty){
-                    this.writeDaemon();
-                }
-            })
+            fs.rename("temp", this.path);
+
+            this.currentlyWriting = false;
+            if(this.dirty){
+                this.writeDaemon();
+            }
         })
     }
 
@@ -125,9 +125,11 @@ class FileFormAccess implements FormAccess {
         //Need to detect system overload
         let instance = {
             form: name,
-            id: this.instanceCount++,
-            contents: contents
+            id: "" + this.instanceCount++,
+            contents: contents,
         }
+
+        this.contents?.instances.push(instance);
 
         this.dirty = true;
         setTimeout(() => this.writeDaemon(), 0);
