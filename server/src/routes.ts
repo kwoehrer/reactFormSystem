@@ -25,6 +25,7 @@ router.use(bodyParser.json()); // parse any bodies using JSON syntax
 /**
  * Return the names of all forms, as an array of strings in JSON.
  */
-router.get('/forms', (res : Response, req : Request) => {
-    res.json(JSON.stringify(access.listAllForms()));
+router.get('/forms', (req : Request, res : Response) => {
+    const result = access.listAllForms();
+    res.json(result);
 });
