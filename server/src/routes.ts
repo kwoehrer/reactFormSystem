@@ -29,3 +29,17 @@ router.get('/forms', (req : Request, res : Response) => {
     const result = access.listAllForms();
     res.json(result);
 });
+
+/**
+ * Return the description of the form named in the endpoint. If there is
+ * none such, return status 404.
+ */
+router.get('/forms/:name', (req : Request, res : Response) => {
+    const formName = req.params.name; 
+    const result = access.getForm(formName);
+    if(result === undefined){
+        res.sendStatus(404);
+    } else{
+        res.json(result);
+    }
+});
