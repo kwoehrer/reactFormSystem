@@ -122,6 +122,12 @@ class FileFormAccess implements FormAccess {
             return undefined;
         }
 
+        for(let i = 0; i < contents.length; i++){
+            if(contents[i] === undefined){
+                return undefined;
+            }
+        }
+
         //Need to detect system overload
         let instance = {
             form: name,
@@ -142,7 +148,11 @@ class FileFormAccess implements FormAccess {
      * @return the form instance information, or undefined if no such
      */
     getInstance(id: string): FormCompletion | undefined {
-        return undefined;
+        let result : FormCompletion | undefined = undefined;
+        if(this.contents !== undefined){
+            this.contents.instances.filter((formInstance) => formInstance.id === id).forEach((id) => result = id)
+        } 
+        return result;
     }
     /**
      * Replace the contents of a previously created form.
