@@ -63,7 +63,7 @@ class FileFormAccess implements FormAccess {
         this.waitTillClean();
         let arr: Array<string> = new Array<string>();
 
-        if(this.contents !== undefined){
+        if (this.contents !== undefined) {
             this.contents.templates.forEach((form) => arr.push(form.name));
         }
 
@@ -76,16 +76,19 @@ class FileFormAccess implements FormAccess {
      */
     getForm(name: string): FormDescription | undefined {
         this.waitTillClean();
-        let result : FormDescription | undefined = undefined;
-        if(this.contents !== undefined){
-            this.contents.templates.filter(currName => currName.name === name).forEach((form) =>  result = form);
+        let result: FormDescription | undefined = undefined;
+        if (this.contents !== undefined) {
+            this.contents.templates.filter(currName => currName.name === name).forEach((form) => result = form);
         }
 
         return result;
     }
 
-    private writeDaemon(){
-        if(this.currentlyWriting || !this.dirty){
+    /**
+     * Write helper. Kind of analagous to a singleton as only one can run at at a time?
+     */
+    private writeDaemon() {
+        if (this.currentlyWriting || !this.dirty) {
             return;
         }
         this.dirty = false;
@@ -96,13 +99,13 @@ class FileFormAccess implements FormAccess {
             fs.rename("temp", this.path);
 
             this.currentlyWriting = false;
-            if(this.dirty){
+            if (this.dirty) {
                 this.writeDaemon();
             }
         })
     }
 
-    
+
     /**  
      * Create a new instance of a form with given contents.
      * If the name doesn't match a form, undefined is returned.
@@ -114,17 +117,17 @@ class FileFormAccess implements FormAccess {
      * @return unique id of created form or undefined if error
      */
     create(name: string, contents: string[]): string | undefined {
-        let form : FormDescription | undefined = this.getForm(name);
-        if(form === undefined){
-            return undefined;
-        }
-        
-        if(form.slots.length !== contents.length){
+        let form: FormDescription | undefined = this.getForm(name);
+        if (form === undefined) {
             return undefined;
         }
 
-        for(let i = 0; i < contents.length; i++){
-            if(contents[i] === undefined){
+        if (form.slots.length !== contents.length) {
+            return undefined;
+        }
+
+        for (let i = 0; i < contents.length; i++) {
+            if (contents[i] === undefined) {
                 return undefined;
             }
         }
@@ -149,10 +152,10 @@ class FileFormAccess implements FormAccess {
      * @return the form instance information, or undefined if no such
      */
     getInstance(id: string): FormCompletion | undefined {
-        let result : FormCompletion | undefined = undefined;
-        if(this.contents !== undefined){
+        let result: FormCompletion | undefined = undefined;
+        if (this.contents !== undefined) {
             this.contents.instances.filter((formInstance) => formInstance.id === id).forEach((form) => result = form)
-        } 
+        }
         return result;
     }
 
@@ -165,10 +168,10 @@ class FileFormAccess implements FormAccess {
      * @return whether the replacement was done 
      */
     replace(id: string, newContents: string[]): boolean {
-        if(this.contents !== undefined){
-            for(let i = 0; i < this.contents.instances.length; i++){
-                if(this.contents.instances[i].id === id){
-                    if(this.contents.instances[i].contents.length == newContents.length){
+        if (this.contents !== undefined) {
+            for (let i = 0; i < this.contents.instances.length; i++) {
+                if (this.contents.instances[i].id === id) {
+                    if (this.contents.instances[i].contents.length == newContents.length) {
                         this.contents.instances[i].contents = newContents;
                         this.dirty = true;
                         setTimeout(() => this.writeDaemon(), 0);
@@ -186,10 +189,10 @@ class FileFormAccess implements FormAccess {
      * @return whether an insatnhce was delete.
      */
     remove(id: string): boolean {
-        if(this.contents !== undefined){
-            for(let i = 0; i < this.contents.instances.length; i++){
-                if(this.contents.instances[i].id === id){        
-                    this.contents.instances.splice(i,1);
+        if (this.contents !== undefined) {
+            for (let i = 0; i < this.contents.instances.length; i++) {
+                if (this.contents.instances[i].id === id) {
+                    this.contents.instances.splice(i, 1);
                     this.dirty = true;
                     setTimeout(() => this.writeDaemon(), 0);
                     return true;
@@ -199,7 +202,12 @@ class FileFormAccess implements FormAccess {
         return false;
     }
 
-    async load(): Promise<FormAccess>{
+    /**
+     * This method is responsible for async loading a series of forms and their instances to a
+     * FormAccess class
+     * @returns A promise of a FormAccess instance 
+     */
+    async load(): Promise<FormAccess> {
         //The only time you read from the json file.
         if (!fs.access(this.path)) {
             this.dirty = true;
@@ -209,7 +217,7 @@ class FileFormAccess implements FormAccess {
 
         this.waitTillClean();
         let data: string = "";
-        await fs.readFile(this.path, {encoding:'utf8'}).then(value => data = value);
+        await fs.readFile(this.path, { encoding: 'utf8' }).then(value => data = value);
         //Do something to data then you can parse. should be simple
         let data_json = JSON.parse(data);
         this.contents = fixFormFileContents(data_json);
@@ -217,6 +225,11 @@ class FileFormAccess implements FormAccess {
     }
 }
 
+/**
+ * Async function, takes a file name and returns a FormAccess promise to that file.
+ * @param filename path to file
+ * @returns Promise<FormAccess> which contains relevant methods for interacting with form files.
+ */
 export async function fileAccess(filename: string): Promise<FormAccess> {
     const result = new FileFormAccess(filename);
     await result.load();
