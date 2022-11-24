@@ -218,7 +218,6 @@ class FileFormAccess implements FormAccess {
         this.waitTillClean();
         let data: string = "";
         await fs.readFile(this.path, { encoding: 'utf8' }).then(value => data = value);
-        //Do something to data then you can parse. should be simple
         let data_json = JSON.parse(data);
         this.contents = fixFormFileContents(data_json);
         return this;
