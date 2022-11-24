@@ -32,12 +32,9 @@ function fixFormFileContents(x: any): FormFileContents {
 class FileFormAccess implements FormAccess {
     dirty: boolean;
     path: string;
+    contents: FormFileContents | undefined;
     //Create a map of json with fixFormFileContents
     //Initialize a write queue based on current structures after certain method are called.
-
-    private cleanDirty() {
-        this.dirty = false;
-    }
 
     private waitTillClean() {
         while (this.dirty) {
@@ -47,31 +44,19 @@ class FileFormAccess implements FormAccess {
 
     constructor(fileName?: string) {
         this.dirty = false;
-        if (fileName === undefined || fileName) {
+        if (fileName === undefined || fileName === null) {
             this.path = "./forms.json";
         } else {
-            this.path = "./" + fileName;
+            this.path = fileName;
         }
+        
+        this.contents = undefined;
     }
 
     /** Return a list of all form description names. */
     listAllForms(): Array<string> {
         this.waitTillClean();
         let arr: Array<string> = new Array<string>();
-        let data: string = "";
-        fs.readFile(this.path, 'utf-8').then(value => data = value);
-        //Do something to data then you can parse. should be simple
-        let data_json = JSON.parse(data);
-        let templates = data_json.template;
-        let instances = data_json.instances;
-
-        Object.entries(templates).filter(([key, value]) => key === "name").forEach(([key, value]) => {
-            arr.push("" + value);
-        })
-
-        Object.entries(instances).filter(([key, value]) => key === "name").forEach(([key, value]) => {
-            arr.push("" + value);
-        })
 
         return arr;
     }
@@ -115,6 +100,7 @@ class FileFormAccess implements FormAccess {
     replace(id: string, newContents: string[]): boolean {
         return false;
     }
+
     /**
      * Delete the iunstance from the system.
      * @param id
@@ -128,16 +114,16 @@ class FileFormAccess implements FormAccess {
         //The only time you read from the json file.
         if (!fs.access(this.path)) {
             this.dirty = true;
-            fs.copyFile('./initial-forms.json', this.path)
-                .then(() => this.cleanDirty);
+            await fs.copyFile('./initial-forms.json', this.path);
+            this.dirty = false;
         }
 
         this.waitTillClean();
         let data: string = "";
-        fs.readFile(this.path, 'utf-8').then(value => data = value);
+        await fs.readFile(this.path, {encoding:'utf8'}).then(value => data = value);
         //Do something to data then you can parse. should be simple
         let data_json = JSON.parse(data);
-        fixFormFileContents(data_json);
+        this.contents = fixFormFileContents(data_json);
         return this;
     }
 }
