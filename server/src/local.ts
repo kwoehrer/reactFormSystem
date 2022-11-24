@@ -90,7 +90,21 @@ class FileFormAccess implements FormAccess {
      * @return unique id of created form or undefined if error
      */
     create(name: string, contents: string[]): string | undefined {
-        return undefined;
+        let form : FormDescription | undefined = this.getForm(name);
+        if(form === undefined){
+            return undefined;
+        }
+        
+        if(form.slots.length !== contents.length){
+            return undefined;
+        }
+
+        //Need to detect system overload
+
+        //Need to create a new instance and write it?? best way to do this?
+
+        this.dirty = true;
+
     }
     /**
      * Return the form instace for the given id.
