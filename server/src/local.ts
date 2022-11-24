@@ -3,7 +3,7 @@ import fs from 'fs/promises';
 import { nanoid } from 'nanoid';
 import { fixFormCompletion, fixFormDescription, FormAccess, FormCompletion, FormDescription } from './formdesc';
 import e from 'express';
-import { readFile } from 'fs';
+import { readFile, writeFile } from 'fs';
 import { formatWithOptions } from 'util';
 
 interface FormFileContents {
@@ -34,6 +34,8 @@ class FileFormAccess implements FormAccess {
     dirty: boolean;
     path: string;
     contents: FormFileContents | undefined;
+    instanceCount: number;
+    currentlyWriting: boolean;
     //Create a map of json with fixFormFileContents
     //Initialize a write queue based on current structures after certain method are called.
 
@@ -50,8 +52,9 @@ class FileFormAccess implements FormAccess {
         } else {
             this.path = fileName;
         }
-        
+        this.instanceCount = 0;
         this.contents = undefined;
+        this.currentlyWriting = false;
     }
 
     /** Return a list of all form description names. */
@@ -79,6 +82,26 @@ class FileFormAccess implements FormAccess {
 
         return result;
     }
+
+    private writeDaemon(){
+        if(this.currentlyWriting){
+            return;
+        }
+        this.dirty = false;
+        this.currentlyWriting = true;
+
+        //Write temp file
+        fs.writeFile("temp", JSON.stringify(this.contents)).then(() => {
+            fs.rename("temp", this.path).then(() => {
+                this.currentlyWriting = false;
+                if(this.dirty){
+                    this.writeDaemon();
+                }
+            })
+        })
+    }
+
+    
     /**  
      * Create a new instance of a form with given contents.
      * If the name doesn't match a form, undefined is returned.
@@ -100,11 +123,16 @@ class FileFormAccess implements FormAccess {
         }
 
         //Need to detect system overload
-
-        //Need to create a new instance and write it?? best way to do this?
+        let instance = {
+            form: name,
+            id: this.instanceCount++,
+            contents: contents
+        }
 
         this.dirty = true;
+        setTimeout(() => this.writeDaemon(), 0);
 
+        return "" + instance.id;
     }
     /**
      * Return the form instace for the given id.
