@@ -43,3 +43,21 @@ router.get('/forms/:name', (req : Request, res : Response) => {
         res.json(result);
     }
 });
+
+/**
+ * The body should be a JSON object with form and contents fields for a new
+ * instantiation. If the form name is valid and the contents are the correct length, then a fresh
+ * (unique) instance identifier is returned. If there is a problem, status 400 is returned.
+ */
+ router.post('/instances', (req : Request, res : Response) => {
+    if(req.body && req.body.contents && req.body.form && typeof req.body.form === 'string'){
+        const result = access.create(req.body.form, req.body.contents);
+        if(result === undefined){
+            res.sendStatus(400);
+        } else{
+            res.send(result);
+        }
+    } else{
+        res.sendStatus(400);
+    }
+});
