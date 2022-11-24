@@ -165,16 +165,16 @@ class FileFormAccess implements FormAccess {
      */
     replace(id: string, newContents: string[]): boolean {
         if(this.contents !== undefined){
-            this.contents.instances.filter((formInstance) => formInstance.id === id).forEach((form) => {
-                if(form.id === id){
-                    if(form.contents.length === newContents.length){
+            for(let i = 0; i < this.contents.instances.length; i++){
+                if(this.contents.instances[i].id === id){
+                    if(this.contents.instances[i].contents.length == newContents.length){
+                        this.contents.instances[i].contents = newContents;
                         this.dirty = true;
-                        form.contents = newContents;
                         this.writeDaemon();
                         return true;
                     }
                 }
-            });
+            }
         }
 
         return false;
