@@ -85,7 +85,7 @@ class FileFormAccess implements FormAccess {
     }
 
     private writeDaemon(){
-        if(this.currentlyWriting){
+        if(this.currentlyWriting || !this.dirty){
             return;
         }
         this.dirty = false;
@@ -155,6 +155,7 @@ class FileFormAccess implements FormAccess {
         } 
         return result;
     }
+
     /**
      * Replace the contents of a previously created form.
      * If the identifier doesn't match, or if the
@@ -170,13 +171,12 @@ class FileFormAccess implements FormAccess {
                     if(this.contents.instances[i].contents.length == newContents.length){
                         this.contents.instances[i].contents = newContents;
                         this.dirty = true;
-                        this.writeDaemon();
+                        setTimeout(() => this.writeDaemon(), 0);
                         return true;
                     }
                 }
             }
         }
-
         return false;
     }
 
@@ -186,6 +186,16 @@ class FileFormAccess implements FormAccess {
      * @return whether an insatnhce was delete.
      */
     remove(id: string): boolean {
+        if(this.contents !== undefined){
+            for(let i = 0; i < this.contents.instances.length; i++){
+                if(this.contents.instances[i].id === id){        
+                    this.contents.instances.splice(i,1);
+                    this.dirty = true;
+                    setTimeout(() => this.writeDaemon(), 0);
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
