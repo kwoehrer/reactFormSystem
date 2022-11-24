@@ -5,6 +5,7 @@ import { fixFormCompletion, fixFormDescription, FormAccess, FormCompletion, Form
 import e from 'express';
 import { readFile, writeFile } from 'fs';
 import { formatWithOptions } from 'util';
+import { resourceLimits } from 'worker_threads';
 
 interface FormFileContents {
     templates: Array<FormDescription>;
@@ -150,7 +151,7 @@ class FileFormAccess implements FormAccess {
     getInstance(id: string): FormCompletion | undefined {
         let result : FormCompletion | undefined = undefined;
         if(this.contents !== undefined){
-            this.contents.instances.filter((formInstance) => formInstance.id === id).forEach((id) => result = id)
+            this.contents.instances.filter((formInstance) => formInstance.id === id).forEach((form) => result = form)
         } 
         return result;
     }
@@ -163,6 +164,19 @@ class FileFormAccess implements FormAccess {
      * @return whether the replacement was done 
      */
     replace(id: string, newContents: string[]): boolean {
+        if(this.contents !== undefined){
+            this.contents.instances.filter((formInstance) => formInstance.id === id).forEach((form) => {
+                if(form.id === id){
+                    if(form.contents.length === newContents.length){
+                        this.dirty = true;
+                        form.contents = newContents;
+                        this.writeDaemon();
+                        return true;
+                    }
+                }
+            });
+        }
+
         return false;
     }
 
