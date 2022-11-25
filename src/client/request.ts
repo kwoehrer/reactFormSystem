@@ -98,11 +98,33 @@ export function accessServer(host: string, port: number): PromiseFormAccess {
             }
         }
 
+        /**
+         * Connect to the REST server specified and do the following:  
+         * Replace the contents of a previously created form.
+         * If the identifier doesn't match, or if the
+         * new contents are the wrong length, no replacement is done.
+         * @param id the id of the instance
+         * @param newContents the updated contents
+         * @return whether the replacement was done 
+         */
         async replace(id: string, newContents: string[]): Promise<boolean>{
             const res: Response = await fetch(this.url + "/instances/" + encodeURIComponent(id), {
                 method: "PATCH",
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ "form": JSON.stringify(id), "contents": JSON.stringify(newContents) })
+            });
+            return (res.ok);
+        }
+
+        /**
+         * Connect to REST server and delete the specified instance from the system.
+         * @param id id of instance we will delete
+         * @return whether an insatnhce was delete.
+         */
+        async remove(id: string): Promise<boolean>{
+            const res: Response = await fetch(this.url + "/instances/" + encodeURIComponent(id), {
+                method: "DELETE",
+                headers: { 'Content-Type': 'application/json' },
             });
             return (res.ok);
         }

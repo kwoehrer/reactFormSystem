@@ -187,7 +187,7 @@ class FileFormAccess implements FormAccess {
 
     /**
      * Delete the iunstance from the system.
-     * @param id
+     * @param id id of instance we will delete
      * @return whether an insatnhce was delete.
      */
     remove(id: string): boolean {

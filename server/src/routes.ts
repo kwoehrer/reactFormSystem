@@ -82,7 +82,6 @@ router.get('/instances/:name', (req: Request, res: Response) => {
  * number of strings as the array has then the instance is updated with the new strings. If the
  * name isn’t valid, status 404 is returned. For other problems, status 400 is returned.
  */
-
  router.patch('/instances/:name', (req: Request, res: Response) => {
     const newContents = req.body.contents;
     const instanceName = req.params.name;
