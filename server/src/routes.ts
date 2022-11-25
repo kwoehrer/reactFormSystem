@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import cors from 'cors';
-import bodyParser from "body-parser"; 
-import { fileAccess } from './local'; 
-import { FormAccess, FormCompletion } from './formdesc'; 
-import {Request, Response} from 'express';
+import bodyParser from "body-parser";
+import { fileAccess } from './local';
+import { FormAccess, FormCompletion } from './formdesc';
+import { Request, Response } from 'express';
 
 
 export const router = Router();
@@ -12,7 +12,7 @@ const filename = process.env.FORMS_FILENAME ?? "forms.json";
 
 // top-level "await" doesn't work with Jest
 // XXX  const access = await fileAccess(filename);
-let access : FormAccess;
+let access: FormAccess;
 async function workaroundNoTopLevelAwait() {
     access = await fileAccess(filename);
 }
@@ -25,7 +25,7 @@ router.use(bodyParser.json()); // parse any bodies using JSON syntax
 /**
  * Return the names of all forms, as an array of strings in JSON.
  */
-router.get('/forms', (req : Request, res : Response) => {
+router.get('/forms', (req: Request, res: Response) => {
     const result = access.listAllForms();
     res.json(result);
 });
@@ -34,12 +34,12 @@ router.get('/forms', (req : Request, res : Response) => {
  * Return the description of the form named in the endpoint. If there is
  * none such, return status 404.
  */
-router.get('/forms/:name', (req : Request, res : Response) => {
-    const formName = req.params.name; 
+router.get('/forms/:name', (req: Request, res: Response) => {
+    const formName = req.params.name;
     const result = access.getForm(formName);
-    if(result === undefined){
+    if (result === undefined) {
         res.sendStatus(404);
-    } else{
+    } else {
         res.json(result);
     }
 });
@@ -49,15 +49,54 @@ router.get('/forms/:name', (req : Request, res : Response) => {
  * instantiation. If the form name is valid and the contents are the correct length, then a fresh
  * (unique) instance identifier is returned. If there is a problem, status 400 is returned.
  */
- router.post('/instances', (req : Request, res : Response) => {
-    if(req.body && req.body.contents && req.body.form && typeof req.body.form === 'string'){
+router.post('/instances', (req: Request, res: Response) => {
+    if (req.body && req.body.contents && req.body.form && typeof req.body.form === 'string') {
         const result = access.create(req.body.form, req.body.contents);
-        if(result === undefined){
+        if (result === undefined) {
             res.sendStatus(400);
-        } else{
+        } else {
             res.send(result);
         }
-    } else{
+    } else {
         res.sendStatus(400);
+    }
+});
+
+/**
+ * Return the form completion for the given name (usually one returned by a previous PUT call).
+ * The result is JSON encoded. If there is no such instance, status 404 is returned.
+ */
+router.get('/instances/:name', (req: Request, res: Response) => {
+    const instanceName = req.params.name;
+    const result = access.getInstance(instanceName);
+    if (result === undefined) {
+        res.sendStatus(404);
+    } else {
+        res.json(result);
+    }
+});
+
+/**
+ * The body should be a JSON object with the contents field
+ * bound to an array of strings. If the instance name is valid and its form requires exactly the
+ * number of strings as the array has then the instance is updated with the new strings. If the
+ * name isn’t valid, status 404 is returned. For other problems, status 400 is returned.
+ */
+
+ router.patch('/instances/:name', (req: Request, res: Response) => {
+    const newContents = req.body.contents;
+    const instanceName = req.params.name;
+    const oldInstance = access.getInstance(instanceName);
+    
+    if (oldInstance === undefined) {
+        res.sendStatus(404);
+    } 
+
+    const result = access.replace(instanceName, newContents);
+
+    if (result === undefined) {
+        res.sendStatus(400);
+    } else {
+        res.json(result);
     }
 });
