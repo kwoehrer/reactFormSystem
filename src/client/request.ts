@@ -83,6 +83,16 @@ export function accessServer(host: string, port: number): PromiseFormAccess {
             }
         }
 
+        async getInstance(id: string): Promise<FormCompletion | undefined>{
+            const res: Response = await fetch((this.url + "/instances/" + encodeURIComponent(id)));
+            //This one we just want to return undefined if nothing occurs
+            if (res.ok) {
+                if (res.body !== undefined && res.body !== null) {
+                    return res.json();
+                }
+            }
+        }
+
     }
 
     return new PromiseFileFormAccess(host, port);
