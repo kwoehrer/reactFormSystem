@@ -19,12 +19,10 @@ export function accessServer(host : string, port : number) : PromiseFormAccess {
      * Access class for accessing rest API form access
      */
     class PromiseFileFormAccess implements PromiseFormAccess {
-        host : string;
-        port : number;
+        url: string;
 
         constructor(host : string, port : number){
-            this.host = host;
-            this.port = port;
+            this.url = "http://" + host + ":" + port;
         }
 
         /**
@@ -45,12 +43,12 @@ export function accessServer(host : string, port : number) : PromiseFormAccess {
           * Connects to REST server specified and returns a list of all form description names.
           */
         async listAllForms(): Promise<string[]>{
-            const res: Response = await fetch(host + "/forms");
+            const res: Response = await fetch(this.url + "/forms");
 
-            const result: string[] = new Array<string>;
+            let result: string[] = new Array<string>;
             if(res.ok){
                 if(res.body !== undefined && res.body !== null){
-                    result.concat(await res.json());
+                    result = (await res.json());
                 }
             } 
 
