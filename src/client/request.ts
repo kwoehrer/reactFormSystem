@@ -35,15 +35,15 @@ export function accessServer(host: string, port: number): PromiseFormAccess {
             if (res.ok) {
                 if (res.body !== undefined && res.body !== null) {
                     return res.json();
-                } else{
+                } else {
                     return Promise.reject("body not defined in response");
                 }
-            } else{
+            } else {
                 return Promise.reject(res.statusText);
             }
 
         }
-        
+
         /** 
          * Connest to REST server specified and return the structure of the named form, or
          * undefined if there is no such form.
@@ -71,11 +71,11 @@ export function accessServer(host: string, port: number): PromiseFormAccess {
          * @param contents values for the slots.
          * @return unique id of created form or undefined if error
          */
-        async create(name: string, contents: string[]): Promise<string | undefined>{
+        async create(name: string, contents: string[]): Promise<string | undefined> {
             const res: Response = await fetch(this.url + "/instances/", {
                 method: "POST",
-                headers: {'Content-Type' : 'application/json'},
-                body: JSON.stringify({"form": JSON.stringify(name), "contents": JSON.stringify(contents)})
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ "form": JSON.stringify(name), "contents": JSON.stringify(contents) })
             });
             //This one we just want to return undefined if nothing occurs
             if (res.ok) {
@@ -83,7 +83,12 @@ export function accessServer(host: string, port: number): PromiseFormAccess {
             }
         }
 
-        async getInstance(id: string): Promise<FormCompletion | undefined>{
+        /**
+         * Connect to the REST server return the form instance for the given id.
+         * @param id id of the instance.
+         * @return the form instance information, or undefined if no such
+         */
+        async getInstance(id: string): Promise<FormCompletion | undefined> {
             const res: Response = await fetch((this.url + "/instances/" + encodeURIComponent(id)));
             //This one we just want to return undefined if nothing occurs
             if (res.ok) {
@@ -91,6 +96,15 @@ export function accessServer(host: string, port: number): PromiseFormAccess {
                     return res.json();
                 }
             }
+        }
+
+        async replace(id: string, newContents: string[]): Promise<boolean>{
+            const res: Response = await fetch(this.url + "/instances/" + encodeURIComponent(id), {
+                method: "PATCH",
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ "form": JSON.stringify(id), "contents": JSON.stringify(newContents) })
+            });
+            return (res.ok);
         }
 
     }
