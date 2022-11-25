@@ -19,15 +19,22 @@ export function accessServer(host : string, port : number) : PromiseFormAccess {
      * Access class for accessing rest API form access
      */
     class FileFormAccess implements PromiseFormAccess {
-        const host : string;
-        const port : number;
+        host : string;
+        port : number;
+        baseOptions: RequestInit;
+
         constructor(host : string, port : number){
             this.host = host;
             this.port = port;
+            this.baseOptions = {
+                headers:{"Content-Type": "application/json"},
+                method: "GET",
+                body: JSON.stringify("")
+            }
         }
 
-        listAllForms: Promise<string[]>{
-
+        listAllForms(): Promise<string[]>{
+            return fetch();
         }
         getForm: (name: string) => Promise<FormDescription | undefined>;
         create: (name: string, contents: string[]) => Promise<string | undefined>;
