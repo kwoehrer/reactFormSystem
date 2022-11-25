@@ -75,18 +75,11 @@ export function accessServer(host: string, port: number): PromiseFormAccess {
             const res: Response = await fetch(this.url + "/instances/", {
                 method: "POST",
                 headers: {'Content-Type' : 'application/json'},
-                body: JSON.stringify({"form": name, "contents": contents})
+                body: JSON.stringify({"form": JSON.stringify(name), "contents": JSON.stringify(contents)})
             });
-
-            if(typeof name !== "string"){
-                Promise.reject(new Error("not valid JSON"));
-            }
-            let result: Promise<string|undefined>;
             //This one we just want to return undefined if nothing occurs
             if (res.ok) {
-                if (res.body !== undefined && res.body !== null) {
-                    return res.json();
-                }
+                return (res.text());
             }
         }
 
