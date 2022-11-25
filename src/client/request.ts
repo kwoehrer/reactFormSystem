@@ -21,20 +21,23 @@ export function accessServer(host : string, port : number) : PromiseFormAccess {
     class FileFormAccess implements PromiseFormAccess {
         host : string;
         port : number;
-        baseOptions: RequestInit;
 
         constructor(host : string, port : number){
             this.host = host;
             this.port = port;
-            this.baseOptions = {
+
+        }
+
+        private configFetchOptions(method : string, body: {}): RequestInit{
+            return {
                 headers:{"Content-Type": "application/json"},
-                method: "GET",
-                body: JSON.stringify("")
+                method: method,
+                body: JSON.stringify(body)
             }
         }
 
         listAllForms(): Promise<string[]>{
-            return fetch();
+            return fetch(host + "/forms", this.baseOptions.body =);
         }
         getForm: (name: string) => Promise<FormDescription | undefined>;
         create: (name: string, contents: string[]) => Promise<string | undefined>;
