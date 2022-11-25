@@ -18,14 +18,13 @@ export function accessServer(host : string, port : number) : PromiseFormAccess {
     /**
      * Access class for accessing rest API form access
      */
-    class FileFormAccess implements PromiseFormAccess {
+    class PromiseFileFormAccess implements PromiseFormAccess {
         host : string;
         port : number;
 
         constructor(host : string, port : number){
             this.host = host;
             this.port = port;
-
         }
 
         /**
@@ -34,7 +33,7 @@ export function accessServer(host : string, port : number) : PromiseFormAccess {
          * @param body JSON formatted body to be used as request to server
          * @returns a RequestInit object for use in fetch methods.
          */
-        private configFetchOptions(method : string, body: {}): RequestInit{
+        private configFetchOptions(method?: string, body?: {}): RequestInit{
             return {
                 headers:{"Content-Type": "application/json"},
                 method: method,
@@ -46,17 +45,21 @@ export function accessServer(host : string, port : number) : PromiseFormAccess {
           * Connects to REST server specified and returns a list of all form description names.
           */
         async listAllForms(): Promise<string[]>{
-            const options = this.configFetchOptions("GET", {});
-            const res: Response = await fetch(host + "/forms", options);
-            if(res.status.b)
+            const res: Response = await fetch(host + "/forms");
+
+            const result: string[] = new Array<string>;
+            if(res.ok){
+                if(res.body !== undefined && res.body !== null){
+                    result.concat(await res.json());
+                }
+            } 
+
+            return result;
         }
-        getForm: (name: string) => Promise<FormDescription | undefined>;
-        create: (name: string, contents: string[]) => Promise<string | undefined>;
-        getInstance: (id: string) => Promise<FormCompletion | undefined>;
-        replace: (id: string, newContents: string[]) => Promise<boolean>;
-        remove: (id: string) => Promise<boolean>;
         
     }
+
+    return new PromiseFileFormAccess(host, port);
     // TODO: return an instance of the class
 }
 
