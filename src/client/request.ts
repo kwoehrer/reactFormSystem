@@ -1,4 +1,4 @@
-import { fixFormCompletion, fixFormDescription, FormAccess } from "../formdesc";
+import { fixFormCompletion, fixFormDescription, FormAccess, FormCompletion, FormDescription } from "../formdesc";
 
 // The interface to implement:
 export type Promisified<T> = {
@@ -14,6 +14,29 @@ export type PromiseFormAccess = Promisified<FormAccess>;
 // using 'fetch'.  Do not cache any information.
 
 export function accessServer(host : string, port : number) : PromiseFormAccess {
+
+    /**
+     * Access class for accessing rest API form access
+     */
+    class FileFormAccess implements PromiseFormAccess {
+        const host : string;
+        const port : number;
+        constructor(host : string, port : number){
+            this.host = host;
+            this.port = port;
+        }
+
+        listAllForms: Promise<string[]>{
+
+        }
+        getForm: (name: string) => Promise<FormDescription | undefined>;
+        create: (name: string, contents: string[]) => Promise<string | undefined>;
+        getInstance: (id: string) => Promise<FormCompletion | undefined>;
+        replace: (id: string, newContents: string[]) => Promise<boolean>;
+        remove: (id: string) => Promise<boolean>;
+        
+    }
     // TODO: return an instance of the class
 }
+
 
