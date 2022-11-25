@@ -28,6 +28,12 @@ export function accessServer(host : string, port : number) : PromiseFormAccess {
 
         }
 
+        /**
+         * Helper method, creates options for rest helper
+         * @param method The type of request (IE GET vs POST)
+         * @param body JSON formatted body to be used as request to server
+         * @returns a RequestInit object for use in fetch methods.
+         */
         private configFetchOptions(method : string, body: {}): RequestInit{
             return {
                 headers:{"Content-Type": "application/json"},
@@ -36,8 +42,13 @@ export function accessServer(host : string, port : number) : PromiseFormAccess {
             }
         }
 
-        listAllForms(): Promise<string[]>{
-            return fetch(host + "/forms", this.baseOptions.body =);
+         /** 
+          * Connects to REST server specified and returns a list of all form description names.
+          */
+        async listAllForms(): Promise<string[]>{
+            const options = this.configFetchOptions("GET", {});
+            const res: Response = await fetch(host + "/forms", options);
+            if(res.status.b)
         }
         getForm: (name: string) => Promise<FormDescription | undefined>;
         create: (name: string, contents: string[]) => Promise<string | undefined>;
