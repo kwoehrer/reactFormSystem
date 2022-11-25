@@ -127,7 +127,7 @@ class FileFormAccess implements FormAccess {
         }
 
         for (let i = 0; i < contents.length; i++) {
-            if (contents[i] === undefined) {
+            if (contents[i] === undefined || contents[i] === null) {
                 return undefined;
             }
         }
@@ -154,7 +154,7 @@ class FileFormAccess implements FormAccess {
     getInstance(id: string): FormCompletion | undefined {
         let result: FormCompletion | undefined = undefined;
         if (this.contents !== undefined) {
-            this.contents.instances.filter((formInstance) => formInstance.id === id).forEach((form) => result = form)
+            this.contents.instances.filter((formInstance) => formInstance.id === id).forEach((form) => result = form);
         }
         return result;
     }
@@ -176,6 +176,8 @@ class FileFormAccess implements FormAccess {
                         this.dirty = true;
                         setTimeout(() => this.writeDaemon(), 0);
                         return true;
+                    } else{
+                        break;
                     }
                 }
             }
