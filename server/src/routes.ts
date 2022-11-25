@@ -87,15 +87,39 @@ router.get('/instances/:name', (req: Request, res: Response) => {
     const newContents = req.body.contents;
     const instanceName = req.params.name;
     const oldInstance = access.getInstance(instanceName);
-    
+
+    //Check if the instance already exists
     if (oldInstance === undefined) {
         res.sendStatus(404);
-    } 
+    }
 
+    //Test for badly formated new contents
+    for (let i = 0; i < newContents.length; i++) {
+        if (newContents[i] === undefined || newContents[i] === null) {
+            res.sendStatus(400);
+            return;
+        }
+    }
+
+    //Try to replace the instance.
     const result = access.replace(instanceName, newContents);
 
     if (result === undefined) {
         res.sendStatus(400);
+    } else {
+        res.json(result);
+    }
+});
+
+/**
+ * If the name matches an instance, that instance is deleted and
+ * success is returned (without content). Otherwise, 404 status is returned.
+ */
+router.delete('/instances/:name', (req: Request, res: Response) => {
+    const instanceName = req.params.name;
+    const result = access.remove(instanceName);
+    if (!result) {
+        res.sendStatus(404);
     } else {
         res.json(result);
     }
