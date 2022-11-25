@@ -52,7 +52,7 @@ export function accessServer(host: string, port: number): PromiseFormAccess {
          */
         async getForm(name: string): Promise<FormDescription | undefined> {
             const res: Response = await fetch((this.url + "/forms/" + encodeURIComponent(name)));
-
+            //This one we just want to return undefined if nothing occurs
             if (res.ok) {
                 if (res.body !== undefined && res.body !== null) {
                     return res.json();
@@ -78,14 +78,16 @@ export function accessServer(host: string, port: number): PromiseFormAccess {
                 body: JSON.stringify({"form": name, "contents": contents})
             });
 
+            if(typeof name !== "string"){
+                Promise.reject(new Error("not valid JSON"));
+            }
             let result: Promise<string|undefined>;
+            //This one we just want to return undefined if nothing occurs
             if (res.ok) {
                 if (res.body !== undefined && res.body !== null) {
-                    result = (res.json());
+                    return res.json();
                 }
             }
-
-            return result;
         }
 
     }
