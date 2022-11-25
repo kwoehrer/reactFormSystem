@@ -2,9 +2,9 @@ import { fixFormCompletion, fixFormDescription, FormAccess, FormCompletion, Form
 
 // The interface to implement:
 export type Promisified<T> = {
-    [K in keyof T]: T[K] extends (...args: any) => infer R ? 
-        (...args: Parameters<T[K]>) => Promise<R> :
-        T;
+    [K in keyof T]: T[K] extends (...args: any) => infer R ?
+    (...args: Parameters<T[K]>) => Promise<R> :
+    T;
 }
 
 export type PromiseFormAccess = Promisified<FormAccess>;
@@ -13,7 +13,7 @@ export type PromiseFormAccess = Promisified<FormAccess>;
 // It should be stateless: it should delegate all its work to the REST API
 // using 'fetch'.  Do not cache any information.
 
-export function accessServer(host : string, port : number) : PromiseFormAccess {
+export function accessServer(host: string, port: number): PromiseFormAccess {
 
     /**
      * Access class for accessing rest API form access
@@ -21,7 +21,7 @@ export function accessServer(host : string, port : number) : PromiseFormAccess {
     class PromiseFileFormAccess implements PromiseFormAccess {
         url: string;
 
-        constructor(host : string, port : number){
+        constructor(host: string, port: number) {
             this.url = "http://" + host + ":" + port;
         }
 
@@ -31,30 +31,50 @@ export function accessServer(host : string, port : number) : PromiseFormAccess {
          * @param body JSON formatted body to be used as request to server
          * @returns a RequestInit object for use in fetch methods.
          */
-        private configFetchOptions(method?: string, body?: {}): RequestInit{
+        private configFetchOptions(method?: string, body?: {}): RequestInit {
             return {
-                headers:{"Content-Type": "application/json"},
+                headers: { "Content-Type": "application/json" },
                 method: method,
                 body: JSON.stringify(body)
             }
         }
 
-         /** 
-          * Connects to REST server specified and returns a list of all form description names.
-          */
-        async listAllForms(): Promise<string[]>{
+        /** 
+         * Connects to REST server specified and returns a list of all form description names.
+         */
+        async listAllForms(): Promise<string[]> {
             const res: Response = await fetch(this.url + "/forms");
 
             let result: string[] = new Array<string>;
-            if(res.ok){
-                if(res.body !== undefined && res.body !== null){
+            if (res.ok) {
+                if (res.body !== undefined && res.body !== null) {
                     result = (await res.json());
                 }
-            } 
+            }
 
             return result;
         }
         
+
+
+        /** Connest to REST server specified and return the structure of the named form, or
+         * undefined if there is no such form.
+         * @param name name of form
+         * @return form description (if the name is valid) or undefined (otherwise)
+         */
+        async getForm(name: string): Promise<FormDescription | undefined> {
+            const res: Response = await fetch((this.url + "/forms/" + encodeURIComponent(name)));
+
+            let result: FormDescription|undefined = undefined;
+            if (res.ok) {
+                if (res.body !== undefined && res.body !== null) {
+                    result = (await res.json());
+                }
+            }
+
+            return result;
+        }
+
     }
 
     return new PromiseFileFormAccess(host, port);
