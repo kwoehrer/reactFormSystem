@@ -25,39 +25,27 @@ export function accessServer(host: string, port: number): PromiseFormAccess {
             this.url = "http://" + host + ":" + port;
         }
 
-        /**
-         * Helper method, creates options for rest helper
-         * @param method The type of request (IE GET vs POST)
-         * @param body JSON formatted body to be used as request to server
-         * @returns a RequestInit object for use in fetch methods.
-         */
-        private configFetchOptions(method?: string, body?: {}): RequestInit {
-            return {
-                headers: { "Content-Type": "application/json" },
-                method: method,
-                body: JSON.stringify(body)
-            }
-        }
-
         /** 
          * Connects to REST server specified and returns a list of all form description names.
          */
         async listAllForms(): Promise<string[]> {
             const res: Response = await fetch(this.url + "/forms");
 
-            let result: string[] = new Array<string>;
+            let result: Promise<string[]>
             if (res.ok) {
                 if (res.body !== undefined && res.body !== null) {
-                    result = (await res.json());
+                    return res.json();
+                } else{
+                    return Promise.reject("body not defined in response");
                 }
+            } else{
+                return Promise.reject(res.statusText);
             }
 
-            return result;
         }
         
-
-
-        /** Connest to REST server specified and return the structure of the named form, or
+        /** 
+         * Connest to REST server specified and return the structure of the named form, or
          * undefined if there is no such form.
          * @param name name of form
          * @return form description (if the name is valid) or undefined (otherwise)
@@ -65,10 +53,35 @@ export function accessServer(host: string, port: number): PromiseFormAccess {
         async getForm(name: string): Promise<FormDescription | undefined> {
             const res: Response = await fetch((this.url + "/forms/" + encodeURIComponent(name)));
 
-            let result: FormDescription|undefined = undefined;
             if (res.ok) {
                 if (res.body !== undefined && res.body !== null) {
-                    result = (await res.json());
+                    return res.json();
+                }
+            }
+        }
+
+        /**
+         * Connect to the REST server specified and do the following:  
+         * Create a new instance of a form with given contents.
+         * If the name doesn't match a form, undefined is returned.
+         * If the number of slot contents doesn't match, undefined is returned.
+         * If the system is overloaded, it may return undefined
+         * rather than create a new instance.
+         * @param name name of form
+         * @param contents values for the slots.
+         * @return unique id of created form or undefined if error
+         */
+        async create(name: string, contents: string[]): Promise<string | undefined>{
+            const res: Response = await fetch(this.url + "/instances/", {
+                method: "POST",
+                headers: {'Content-Type' : 'application/json'},
+                body: JSON.stringify({"form": name, "contents": contents})
+            });
+
+            let result: Promise<string|undefined>;
+            if (res.ok) {
+                if (res.body !== undefined && res.body !== null) {
+                    result = (res.json());
                 }
             }
 
