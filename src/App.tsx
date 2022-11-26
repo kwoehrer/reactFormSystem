@@ -239,7 +239,12 @@ function App() {
     setIsSubmitting(true);
     const result = await backendServer.create(formName, slotContents);
     setIsSubmitting(false);
-    console.log("New instance id created: " + result);
+    if(result !== undefined){
+      toast({ status: 'success', description: "New instance id created: " + result});
+    } else{
+      toast({ status: 'error', description: "Could not create new instance of form"});
+    }
+
 
   }, [isSubmitting, slotContents]);
   // #)
