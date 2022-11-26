@@ -35,7 +35,6 @@ class FileFormAccess implements FormAccess {
     dirty: boolean;
     path: string;
     contents: FormFileContents | undefined;
-    instanceCount: number;
     currentlyWriting: boolean;
     //Create a map of json with fixFormFileContents
     //Initialize a write queue based on current structures after certain method are called.
@@ -53,7 +52,6 @@ class FileFormAccess implements FormAccess {
         } else {
             this.path = fileName;
         }
-        this.instanceCount = 0;
         this.contents = undefined;
         this.currentlyWriting = false;
     }
@@ -142,7 +140,7 @@ class FileFormAccess implements FormAccess {
         //Need to detect system overload
         let instance = {
             form: name,
-            id: "" + this.instanceCount++,
+            id: nanoid(),
             contents: contents,
         }
 
@@ -150,6 +148,7 @@ class FileFormAccess implements FormAccess {
 
         this.dirty = true;
         setTimeout(() => this.writeDaemon(), 0);
+        console.log(instance.id);
 
         return "" + instance.id;
     }

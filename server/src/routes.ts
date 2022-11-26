@@ -90,6 +90,7 @@ router.patch('/instances/:name', (req: Request, res: Response) => {
     //Check if the instance already exists
     if (oldInstance === undefined) {
         res.sendStatus(404);
+        return;
     }
 
     //Test for badly formated new contents

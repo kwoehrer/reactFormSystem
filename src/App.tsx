@@ -10,6 +10,7 @@ import { readFile } from './readFile';
 import { fixFormDescription, FormDescription } from './formdesc';
 import { accessServer, PromiseFormAccess } from './client/request';
 import { userInfo } from 'os';
+import { FormCompletion } from '../server/src/formdesc';
 
 const HORIZ_MARGIN = 24;
 const VERT_MARGIN = 60;
@@ -52,6 +53,11 @@ function App() {
   const backendServer = accessServer("localhost", 56018);
   const formList = formListParse(usePromise<[], string[]>(backendServer.listAllForms,[],toast));
   const [options, setOptions] = useState(optionsParse(usePromise(backendServer.getForm,[formName],toast)));
+
+  //Instance state logic
+  const [instanceList, setInstanceList] = useState(Array<FormCompletion>);
+  const [currInstance, setCurrInstance] = useState(undefined);
+  const [freshInstance, setFreshInstance] = useState(false);
 
   function formListParse(formList: string[]|undefined): string[]{
     if(formList === undefined){
@@ -229,17 +235,32 @@ function App() {
   const canvasWidth = windowDims.width - HORIZ_MARGIN;
   const canvasHeight = windowDims.height - VERT_MARGIN;
   
-  //Submit button/create logic
+  //Submit button/create instance logic
   const [isSubmitting, setIsSubmitting] = useState(false);
   const submit = useCallback(async () => {
+    let result :string | undefined = undefined;
+    //Stop concurrent submits, wait for last one to finish.. instructions unclear in part 4 of react
     if(isSubmitting){
       return;
     }
 
-    setIsSubmitting(true);
-    const result = await backendServer.create(formName, slotContents);
-    setIsSubmitting(false);
+    if(form){
+      //TODO Update this... not sure what "the same being processed means" but maybe this?
+      if(await backendServer.replace(formName, slotContents)){
+        toast({ status: 'info', description: "Updated instance " + result});
+      }
+    } else{
+      setIsSubmitting(true);
+      result = await backendServer.create(formName, slotContents);
+      setIsSubmitting(false);
+    }
+
     if(result !== undefined){
+      const formInstance = await backendServer.getInstance(result);
+      if(formInstance !== undefined){
+        instanceList.push(formInstance);
+      }
+
       toast({ status: 'success', description: "New instance id created: " + result});
     } else{
       toast({ status: 'error', description: "Could not create new instance of form"});
@@ -247,7 +268,7 @@ function App() {
 
 
   }, [isSubmitting, slotContents]);
-  // #)
+
   return (
     <div className="App">
       <header className="App-header">
