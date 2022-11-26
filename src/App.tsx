@@ -3,7 +3,7 @@ import {Text} from '@chakra-ui/react';
 ## */
 import './App.css';
 // #(
-import { MouseEvent, KeyboardEvent, useEffect, useRef, useState, useInsertionEffect } from 'react';
+import { MouseEvent, KeyboardEvent, useEffect, useRef, useState, useInsertionEffect, useMemo } from 'react';
 import { Radio, RadioGroup, Select, Stack, useToast, UseToastOptions } from '@chakra-ui/react';
 import { Form, ImageFit } from './Form';
 import { readFile } from './readFile';
@@ -64,12 +64,19 @@ function App() {
   function usePromise<A extends unknown[], T>(promisef: (...args: A) => Promise<T> | undefined,
     args: A, toast: (opt: UseToastOptions) => unknown): T | undefined {
       console.log("usePromise in use");
-      let result = undefined;
-      
+      const [result, setResult] = useState<T|undefined>();
+
       const prom =  promisef(...args);
 
-      prom?.then((res) => result = res).catch((err) => toast({ status: 'error', description:throwMessage(err) }));
-
+      prom?.then((res) => {
+        console.log("Successful usePromise");
+        setResult(res);
+        console.log(result);
+      }).catch((err) => {
+        toast({ status: 'error', description:throwMessage(err) });
+        setResult(undefined);
+      });
+      
       return result;
   }
 
@@ -80,6 +87,13 @@ function App() {
       const canvas = canvasRef.current;
       if (formName && canvas) {
         try {
+          /**
+           *           const options = await backendServer.getForm(formName);
+          if(options === undefined){
+            console.log("img load failed. Assigment said to access images in the same way as before");
+            return;
+          }
+           */
           const buf = await readFile(formName + ".json");
           const str = new TextDecoder('utf-8').decode(buf);
           const options = JSON.parse(str);
@@ -97,7 +111,7 @@ function App() {
             setOptions(cleanOptions);
             setSlotContents(cleanOptions.slots.map(_ => ""));
             setForm(new Form(canvas, formImage, cleanOptions));
-            console.log(`SUccessfully read form`);
+            console.log(`Sccessfully read form`);
           }
         } catch (ex) {
           let mess: string;

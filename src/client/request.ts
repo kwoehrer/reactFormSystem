@@ -52,12 +52,15 @@ export function accessServer(host: string, port: number): PromiseFormAccess {
          * @return form description (if the name is valid) or undefined (otherwise)
          */
         async getForm(name: string): Promise<FormDescription | undefined> {
+            console.log("attempting to getForm " + name);
             const res: Response = await fetch((PromiseFileFormAccess.url + "/forms/" + encodeURIComponent(name)));
             //This one we just want to return undefined if nothing occurs
             if (res.ok) {
                 if (res.body !== undefined && res.body !== null) {
                     return res.json();
                 }
+            } else{
+                console.log("failed to getForm " + name);
             }
         }
 
