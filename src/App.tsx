@@ -56,7 +56,7 @@ function App() {
 
   //Instance state logic
   const [instanceList, setInstanceList] = useState(Array<FormCompletion>);
-  const [currInstance, setCurrInstance] = useState(undefined);
+  const [currInstance, setCurrInstance] = useState<FormCompletion|undefined>(undefined);
   const [freshInstance, setFreshInstance] = useState(false);
 
   function formListParse(formList: string[]|undefined): string[]{
@@ -244,30 +244,30 @@ function App() {
       return;
     }
 
-    if(form){
+    if(currInstance !== undefined){
       //TODO Update this... not sure what "the same being processed means" but maybe this?
-      if(await backendServer.replace(formName, slotContents)){
-        toast({ status: 'info', description: "Updated instance " + result});
+      if(await backendServer.replace(currInstance.id, slotContents)){
+        toast({ status: 'info', description: "Updated instance " + currInstance.id});
       }
     } else{
       setIsSubmitting(true);
       result = await backendServer.create(formName, slotContents);
       setIsSubmitting(false);
-    }
 
-    if(result !== undefined){
-      const formInstance = await backendServer.getInstance(result);
-      if(formInstance !== undefined){
-        instanceList.push(formInstance);
+      if(result !== undefined){
+        const formInstance = await backendServer.getInstance(result);
+        setCurrInstance(formInstance);
+        if(formInstance !== undefined){
+          instanceList.push(formInstance);
+        }
+  
+        toast({ status: 'success', description: "New instance id created: " + result});
+      } else{
+        toast({ status: 'error', description: "Could not create new instance of form"});
       }
-
-      toast({ status: 'success', description: "New instance id created: " + result});
-    } else{
-      toast({ status: 'error', description: "Could not create new instance of form"});
     }
 
-
-  }, [isSubmitting, slotContents]);
+  }, [isSubmitting, slotContents, freshInstance, currInstance]);
 
   return (
     <div className="App">
