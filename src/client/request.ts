@@ -132,7 +132,6 @@ export function accessServer(host: string, port: number): PromiseFormAccess {
     }
 
     return new PromiseFileFormAccess(host, port);
-    // TODO: return an instance of the class
 }
 
 
