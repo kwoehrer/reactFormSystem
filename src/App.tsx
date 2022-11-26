@@ -43,8 +43,7 @@ function App() {
   const canvasRef = useRef(null as null | HTMLCanvasElement);
   const [formName, setFormName] = useState('Add Form');
   const [fit, setFit] = useState(ImageFit.FitWidth);
-  const [options, setOptions] = useState(DEFAULT_OPTIONS)
-  const [form, setForm] = useState(null as null | Form);
+  const [form, setForm] = useState(null as null | Form); 
   const [currentSlotIndex, setCurrentSlotIndex] = useState(-1);
   const [slotContents, setSlotContents] = useState([] as Array<string>);
 
@@ -52,6 +51,7 @@ function App() {
 
   const backendServer = accessServer("localhost", 56018);
   const formList = formListParse(usePromise<[], string[]>(backendServer.listAllForms,[],toast));
+  const options = usePromise(backendServer.getForm,[formName],toast);
 
   function formListParse(formList: string[]|undefined): string[]{
     if(formList === undefined){
@@ -78,7 +78,8 @@ function App() {
         });
       }, [...args, toast]);
       
-      console.log("usePromise completed : " + result);
+      console.log("usePromise completed : ");
+      console.log(result)
       return result;
   }
 
@@ -90,7 +91,8 @@ function App() {
       const canvas = canvasRef.current;
       if (formName && canvas) {
         try {
-          const buf = await readFile(formName + ".json");
+          console.log(formName);
+          const buf = await readFile(formName.replace(' ', '-') + ".json");
           const str = new TextDecoder('utf-8').decode(buf);
           const formSelect = JSON.parse(str);
           let imageFile: string;
@@ -102,12 +104,19 @@ function App() {
           const formImage = new Image();
           formImage.src = imageFile;
           await formImage.decode();
-          const cleanOptions = fixFormDescription(options);
+
+          let cleanOptions: FormDescription;
+          //Narrowing Conversion
+          if(options === undefined){
+            cleanOptions = fixFormDescription(DEFAULT_OPTIONS);
+          } else{
+            cleanOptions = fixFormDescription(options);
+          }
+          
           if (stillTrying) {
-            setOptions(cleanOptions);
             setSlotContents(cleanOptions.slots.map(_ => ""));
             setForm(new Form(canvas, formImage, cleanOptions));
-            console.log(`Sccessfully read form`);
+            console.log(`Successfully read form`);
           }
         } catch (ex) {
           let mess: string;
@@ -169,7 +178,7 @@ function App() {
       console.log(`x = ${mx}, y = ${my}`);
       let newIndex = -1;
       if (form) {
-        options.slots.forEach((sl, index) => {
+        if(options)options.slots.forEach((sl, index) => {
           const loc = sl.location;
           const x = form.cvtpctx(loc.x);
           const y = form.cvtpcty(loc.y);
