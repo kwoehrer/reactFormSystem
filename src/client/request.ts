@@ -23,15 +23,16 @@ export function accessServer(host: string, port: number): PromiseFormAccess {
 
         constructor(host: string, port: number) {
             this.url = "http://" + host + ":" + port;
+            console.log("Creating server connection to " + this.url);
         }
 
         /** 
          * Connects to REST server specified and returns a list of all form description names.
          */
         async listAllForms(): Promise<string[]> {
+            console.log(this.url);
             const res: Response = await fetch(this.url + "/forms");
 
-            let result: Promise<string[]>
             if (res.ok) {
                 if (res.body !== undefined && res.body !== null) {
                     return res.json();

@@ -9,6 +9,7 @@ import { Form, ImageFit } from './Form';
 import { readFile } from './readFile';
 import { fixFormDescription, FormDescription } from './formdesc';
 import { accessServer, PromiseFormAccess } from './client/request';
+import { userInfo } from 'os';
 
 const HORIZ_MARGIN = 24;
 const VERT_MARGIN = 60;
@@ -49,37 +50,32 @@ function App() {
 
   const toast = useToast();
 
-  const [backendServer, setServer] = useState(accessServer("localhost", 56018));
-  const [formList, setFormList] = useState(usePromise(backendServer.listAllForms,[],toast));
+  const backendServer = accessServer("localhost", 56018);
+
+  const formList = formListParse(usePromise<[], string[]>(backendServer.listAllForms,[],toast));
+
+  function formListParse(formList: string[]|undefined): string[]{
+    if(formList === undefined){
+      return [];
+    } else{
+      return formList;
+    }
+  }
 
   function usePromise<A extends unknown[], T>(promisef: (...args: A) => Promise<T> | undefined,
     args: A, toast: (opt: UseToastOptions) => unknown): T | undefined {
-      let done :boolean = false;
+      console.log(backendServer);
 
-      const [promResult, setPromResult] = useState<T>();
+      const [state, setterState] = useState<T>();
+      
+      const prom =  promisef(...args);
+      console.log(prom);
 
-      const prom = promisef(...args);
-      let result : T | undefined;
+      prom?.then((result) => setterState(result)).catch((err) => toast({ status: 'error', description:throwMessage(err) }));
+      console.log(state);
 
-      prom?.then((result) => {
-        done = true;
-        result = result;
-        if(result === undefined){
-          return undefined;
-        }else{
-          setPromResult(result);
-        }
-      }).catch((err) => toast({ status: 'error', description:throwMessage(err) }));
-
-      return result;
+      return state;
   }
-
-  useEffect(() => {
-    const formServer: PromiseFormAccess = accessServer("localhost", 56018);
-
-    let formChoices: Array<string>;
-    formServer.listAllForms().then(data => (formChoices = data));
-  }, []);
 
   useEffect(() => {
     let stillTrying = true;
@@ -218,12 +214,11 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        {/* #( */}
         <Stack direction='row'>
           <Select placeholder='Select Form' value={formName}
             onChange={(ev) => setFormName(ev.target.value)}>
-            {
-              FORM_CHOICES.map(name => (
+            { 
+              formList.map(name => (
                 <option id={name} value={name}>{name}</option>
               ))
             }
