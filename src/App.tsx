@@ -51,7 +51,6 @@ function App() {
   const toast = useToast();
 
   const backendServer = accessServer("localhost", 56018);
-
   const formList = formListParse(usePromise<[], string[]>(backendServer.listAllForms,[],toast));
 
   function formListParse(formList: string[]|undefined): string[]{
@@ -64,17 +63,14 @@ function App() {
 
   function usePromise<A extends unknown[], T>(promisef: (...args: A) => Promise<T> | undefined,
     args: A, toast: (opt: UseToastOptions) => unknown): T | undefined {
-      console.log(backendServer);
-
-      const [state, setterState] = useState<T>();
+      console.log("usePromise in use");
+      let result = undefined;
       
       const prom =  promisef(...args);
-      console.log(prom);
 
-      prom?.then((result) => setterState(result)).catch((err) => toast({ status: 'error', description:throwMessage(err) }));
-      console.log(state);
+      prom?.then((res) => result = res).catch((err) => toast({ status: 'error', description:throwMessage(err) }));
 
-      return state;
+      return result;
   }
 
   useEffect(() => {

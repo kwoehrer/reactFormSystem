@@ -19,19 +19,19 @@ export function accessServer(host: string, port: number): PromiseFormAccess {
      * Access class for accessing rest API form access
      */
     class PromiseFileFormAccess implements PromiseFormAccess {
-        url: string;
+        static url: string;
 
         constructor(host: string, port: number) {
-            this.url = "http://" + host + ":" + port;
-            console.log("Creating server connection to " + this.url);
+            PromiseFileFormAccess.url = "http://" + host + ":" + port;
+            console.log("Creating server connection to " + PromiseFileFormAccess.url);
         }
 
         /** 
          * Connects to REST server specified and returns a list of all form description names.
          */
         async listAllForms(): Promise<string[]> {
-            console.log(this.url);
-            const res: Response = await fetch(this.url + "/forms");
+            console.log(PromiseFileFormAccess.url);
+            const res: Response = await fetch(PromiseFileFormAccess.url + "/forms");
 
             if (res.ok) {
                 if (res.body !== undefined && res.body !== null) {
@@ -52,7 +52,7 @@ export function accessServer(host: string, port: number): PromiseFormAccess {
          * @return form description (if the name is valid) or undefined (otherwise)
          */
         async getForm(name: string): Promise<FormDescription | undefined> {
-            const res: Response = await fetch((this.url + "/forms/" + encodeURIComponent(name)));
+            const res: Response = await fetch((PromiseFileFormAccess.url + "/forms/" + encodeURIComponent(name)));
             //This one we just want to return undefined if nothing occurs
             if (res.ok) {
                 if (res.body !== undefined && res.body !== null) {
@@ -73,7 +73,7 @@ export function accessServer(host: string, port: number): PromiseFormAccess {
          * @return unique id of created form or undefined if error
          */
         async create(name: string, contents: string[]): Promise<string | undefined> {
-            const res: Response = await fetch(this.url + "/instances/", {
+            const res: Response = await fetch(PromiseFileFormAccess.url+ "/instances/", {
                 method: "POST",
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ "form": JSON.stringify(name), "contents": JSON.stringify(contents) })
@@ -90,7 +90,7 @@ export function accessServer(host: string, port: number): PromiseFormAccess {
          * @return the form instance information, or undefined if no such
          */
         async getInstance(id: string): Promise<FormCompletion | undefined> {
-            const res: Response = await fetch((this.url + "/instances/" + encodeURIComponent(id)));
+            const res: Response = await fetch((PromiseFileFormAccess.url + "/instances/" + encodeURIComponent(id)));
             //This one we just want to return undefined if nothing occurs
             if (res.ok) {
                 if (res.body !== undefined && res.body !== null) {
@@ -109,7 +109,7 @@ export function accessServer(host: string, port: number): PromiseFormAccess {
          * @return whether the replacement was done 
          */
         async replace(id: string, newContents: string[]): Promise<boolean>{
-            const res: Response = await fetch(this.url + "/instances/" + encodeURIComponent(id), {
+            const res: Response = await fetch(PromiseFileFormAccess.url + "/instances/" + encodeURIComponent(id), {
                 method: "PATCH",
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ "form": JSON.stringify(id), "contents": JSON.stringify(newContents) })
@@ -123,7 +123,7 @@ export function accessServer(host: string, port: number): PromiseFormAccess {
          * @return whether an insatnhce was delete.
          */
         async remove(id: string): Promise<boolean>{
-            const res: Response = await fetch(this.url + "/instances/" + encodeURIComponent(id), {
+            const res: Response = await fetch(PromiseFileFormAccess.url + "/instances/" + encodeURIComponent(id), {
                 method: "DELETE",
                 headers: { 'Content-Type': 'application/json' },
             });
