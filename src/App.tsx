@@ -8,6 +8,7 @@ import { Radio, RadioGroup, Select, Stack, useToast } from '@chakra-ui/react';
 import { Form, ImageFit} from './Form'; 
 import { readFile } from './readFile';
 import { fixFormDescription, FormDescription } from './formdesc';
+import { accessServer, PromiseFormAccess } from './client/request';
 
 const HORIZ_MARGIN = 24;
 const VERT_MARGIN = 60;
@@ -26,7 +27,10 @@ const DEFAULT_OPTIONS : FormDescription = {
   slots: []
 }
 
-const FORM_CHOICES = [ "add-form", 'travel-form', 'no-form' ]; // ##
+const formServer: PromiseFormAccess  = accessServer("localhost", 56018);
+
+let formChoices: Array<string>;
+formServer.listAllForms().then(data => (formChoices = data));
 
 function App() {
   // #(
@@ -183,7 +187,7 @@ function App() {
           <Select placeholder='Select Form' value={formName}
             onChange={(ev) => setFormName(ev.target.value)}>
               {
-                FORM_CHOICES.map(name => (
+                formChoices.map(name => (
                   <option id={name} value={name}>{name}</option>
                 ))
               }

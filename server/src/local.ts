@@ -56,6 +56,7 @@ class FileFormAccess implements FormAccess {
         this.instanceCount = 0;
         this.contents = undefined;
         this.currentlyWriting = false;
+
     }
 
     /** Return a list of all form description names. */
@@ -211,7 +212,7 @@ class FileFormAccess implements FormAccess {
      */
     async load(): Promise<FormAccess> {
         //The only time you read from the json file.
-        if (!fs.access(this.path)) {
+        if (!(await this.pathExists())){
             this.dirty = true;
             await fs.copyFile('./initial-forms.json', this.path);
             this.dirty = false;
@@ -223,6 +224,17 @@ class FileFormAccess implements FormAccess {
         let data_json = JSON.parse(data);
         this.contents = fixFormFileContents(data_json);
         return this;
+    }
+
+    private async pathExists(): Promise<boolean>{
+        try{
+            await fs.access(this.path, fs.constants.R_OK);
+            return true;
+        }
+        catch (error) {
+            return false;
+        }
+
     }
 }
 
