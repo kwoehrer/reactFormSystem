@@ -41,7 +41,7 @@ function App() {
   // #(
   const [windowDims, setWindowDims] = useState(getWindowDimensions())
   const canvasRef = useRef(null as null | HTMLCanvasElement);
-  const [formName, setFormName] = useState('add-form');
+  const [formName, setFormName] = useState('Add Form');
   const [fit, setFit] = useState(ImageFit.FitWidth);
   const [options, setOptions] = useState(DEFAULT_OPTIONS)
   const [form, setForm] = useState(null as null | Form);
@@ -72,15 +72,16 @@ function App() {
         prom?.then((res) => {
           console.log("Successful usePromise");
           setResult(res);
-          console.log(result);
         }).catch((err) => {
           toast({ status: 'error', description:throwMessage(err) });
           setResult(undefined);
         });
-      }, []);
+      }, [...args, toast]);
       
+      console.log("usePromise completed : " + result);
       return result;
   }
+
 
   useEffect(() => {
     let stillTrying = true;
@@ -89,19 +90,12 @@ function App() {
       const canvas = canvasRef.current;
       if (formName && canvas) {
         try {
-          /**
-           *           const options = await backendServer.getForm(formName);
-          if(options === undefined){
-            console.log("img load failed. Assigment said to access images in the same way as before");
-            return;
-          }
-           */
           const buf = await readFile(formName + ".json");
           const str = new TextDecoder('utf-8').decode(buf);
-          const options = JSON.parse(str);
+          const formSelect = JSON.parse(str);
           let imageFile: string;
-          if (typeof options.image === "string") {
-            imageFile = options.image;
+          if (typeof formSelect.image === "string") {
+            imageFile = formSelect.image;
           } else {
             throw new Error("No image mentioned in " + formName + ".json");
           }
