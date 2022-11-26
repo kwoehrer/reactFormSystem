@@ -3,8 +3,8 @@ import {Text} from '@chakra-ui/react';
 ## */
 import './App.css';
 // #(
-import { MouseEvent, KeyboardEvent, useEffect, useRef, useState, useInsertionEffect, useMemo } from 'react';
-import { Radio, RadioGroup, Select, Stack, useToast, UseToastOptions } from '@chakra-ui/react';
+import { MouseEvent, KeyboardEvent, useEffect, useRef, useState, useInsertionEffect, useMemo, useCallback } from 'react';
+import { Button, ButtonGroup, Radio, RadioGroup, Select, Stack, useToast, UseToastOptions } from '@chakra-ui/react';
 import { Form, ImageFit } from './Form';
 import { readFile } from './readFile';
 import { fixFormDescription, FormDescription } from './formdesc';
@@ -51,13 +51,21 @@ function App() {
 
   const backendServer = accessServer("localhost", 56018);
   const formList = formListParse(usePromise<[], string[]>(backendServer.listAllForms,[],toast));
-  const options = usePromise(backendServer.getForm,[formName],toast);
+  const [options, setOptions] = useState(optionsParse(usePromise(backendServer.getForm,[formName],toast)));
 
   function formListParse(formList: string[]|undefined): string[]{
     if(formList === undefined){
       return [];
     } else{
       return formList;
+    }
+  }
+
+  function optionsParse(options: FormDescription|undefined): FormDescription{
+    if(options === undefined){
+      return DEFAULT_OPTIONS;
+    } else{
+      return options;
     }
   }
 
@@ -105,15 +113,10 @@ function App() {
           formImage.src = imageFile;
           await formImage.decode();
 
-          let cleanOptions: FormDescription;
-          //Narrowing Conversion
-          if(options === undefined){
-            cleanOptions = fixFormDescription(DEFAULT_OPTIONS);
-          } else{
-            cleanOptions = fixFormDescription(options);
-          }
+          let cleanOptions: FormDescription = fixFormDescription(options);
           
           if (stillTrying) {
+            setOptions(cleanOptions);
             setSlotContents(cleanOptions.slots.map(_ => ""));
             setForm(new Form(canvas, formImage, cleanOptions));
             console.log(`Successfully read form`);
@@ -194,6 +197,8 @@ function App() {
       if (newIndex !== currentSlotIndex) {
         setCurrentSlotIndex(newIndex);
       }
+    } else{
+
     }
   }
 
@@ -224,7 +229,23 @@ function App() {
   }
   const canvasWidth = windowDims.width - HORIZ_MARGIN;
   const canvasHeight = windowDims.height - VERT_MARGIN;
+  
+  //Submit button/create logic
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const submit = useCallback(async () => {
+    if(isSubmitting){
+      return;
+    }
 
+    setIsSubmitting(true);
+    let result = await backendServer.create(formName, slotContents);
+    console.log("Submit Event");
+    console.log(result);
+    setIsSubmitting(false);
+
+
+
+  }, [isSubmitting]);
   // #)
   return (
     <div className="App">
@@ -245,6 +266,11 @@ function App() {
               <Radio value={ImageFit.FitWhole}>Fit Whole</Radio>
             </Stack>
           </RadioGroup>
+          <ButtonGroup>
+            <Button disabled = {isSubmitting} colorScheme= 'blue' variant= 'outline' onClick={submit}>
+              Submit
+            </Button>
+          </ButtonGroup>
         </Stack>
         <canvas ref={canvasRef} width={canvasWidth} height={canvasHeight}
           onClick={mouseClick} onKeyDown={keyDown} tabIndex={1}>

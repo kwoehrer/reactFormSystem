@@ -77,6 +77,9 @@ export function accessServer(host: string, port: number): PromiseFormAccess {
          * @return unique id of created form or undefined if error
          */
         async create(name: string, contents: string[]): Promise<string | undefined> {
+            console.log("recieved create request")
+            console.log(name);
+            console.log(contents);
             const res: Response = await fetch(PromiseFileFormAccess.url+ "/instances/", {
                 method: "POST",
                 headers: { 'Content-Type': 'application/json' },
@@ -84,6 +87,7 @@ export function accessServer(host: string, port: number): PromiseFormAccess {
             });
             //This one we just want to return undefined if nothing occurs
             if (res.ok) {
+                console.log("create request successful")
                 return (res.text());
             }
         }
