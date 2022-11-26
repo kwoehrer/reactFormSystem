@@ -237,11 +237,9 @@ function App() {
     }
 
     setIsSubmitting(true);
-    console.log("Creating instance of " + formName + " " + slotContents);
     const result = await backendServer.create(formName, slotContents);
-    console.log("Submit Event Results");
-    console.log(result);
     setIsSubmitting(false);
+    console.log("New instance id created: " + result);
 
   }, [isSubmitting, slotContents]);
   // #)
