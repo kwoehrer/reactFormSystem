@@ -56,7 +56,6 @@ class FileFormAccess implements FormAccess {
         this.instanceCount = 0;
         this.contents = undefined;
         this.currentlyWriting = false;
-
     }
 
     /** Return a list of all form description names. */

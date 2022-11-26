@@ -3,9 +3,9 @@ import {Text} from '@chakra-ui/react';
 ## */
 import './App.css';
 // #(
-import { MouseEvent, KeyboardEvent, useEffect, useRef, useState} from 'react';
-import { Radio, RadioGroup, Select, Stack, useToast } from '@chakra-ui/react';
-import { Form, ImageFit} from './Form'; 
+import { MouseEvent, KeyboardEvent, useEffect, useRef, useState, useInsertionEffect } from 'react';
+import { Radio, RadioGroup, Select, Stack, useToast, UseToastOptions } from '@chakra-ui/react';
+import { Form, ImageFit } from './Form';
 import { readFile } from './readFile';
 import { fixFormDescription, FormDescription } from './formdesc';
 import { accessServer, PromiseFormAccess } from './client/request';
@@ -14,28 +14,32 @@ const HORIZ_MARGIN = 24;
 const VERT_MARGIN = 60;
 // #)
 
-function getWindowDimensions(): { width: number; height: number; }  {
+function getWindowDimensions(): { width: number; height: number; } {
   return {
     width: window.innerWidth,
     height: window.innerHeight
   };
 }
 
-const DEFAULT_OPTIONS : FormDescription = {
+const DEFAULT_OPTIONS: FormDescription = {
   name: 'default',
   image: '',
   slots: []
 }
 
-const formServer: PromiseFormAccess  = accessServer("localhost", 56018);
-
-let formChoices: Array<string>;
-formServer.listAllForms().then(data => (formChoices = data));
+/**
+ * Converts an exception to a string.
+ * @param e Exception, to be converted to a string.
+ * @returns A string representation of the error
+ */
+function throwMessage(e: Error): string {
+  return e.name + ": " + e.message;
+}
 
 function App() {
   // #(
   const [windowDims, setWindowDims] = useState(getWindowDimensions())
-  const canvasRef = useRef(null as null | HTMLCanvasElement); 
+  const canvasRef = useRef(null as null | HTMLCanvasElement);
   const [formName, setFormName] = useState('add-form');
   const [fit, setFit] = useState(ImageFit.FitWidth);
   const [options, setOptions] = useState(DEFAULT_OPTIONS)
@@ -44,6 +48,30 @@ function App() {
   const [slotContents, setSlotContents] = useState([] as Array<string>);
 
   const toast = useToast();
+
+  function usePromise<A extends unknown[], T>(promisef: (...args: A) => Promise<T> | undefined,
+    args: A, toast: (opt: UseToastOptions) => unknown): T | undefined {
+      let done :boolean = false;
+
+      const prom = promisef(...args);
+      let result : T;
+
+      prom?.then((result) => {
+        done = true;
+        result = result;
+        const [promResult, setPromResult] = useState(result);
+        setPromResult(result);
+      }).catch((err) => toast({ status: 'error', description:throwMessage(err) }));
+
+      
+  }
+
+  useEffect(() => {
+    const formServer: PromiseFormAccess = accessServer("localhost", 56018);
+
+    let formChoices: Array<string>;
+    formServer.listAllForms().then(data => (formChoices = data));
+  }, []);
 
   useEffect(() => {
     let stillTrying = true;
@@ -99,9 +127,9 @@ function App() {
     window.addEventListener('resize', handleResize);
 
     return () => {
-      window.removeEventListener('resize',handleResize);
+      window.removeEventListener('resize', handleResize);
     }
-  },[]) // [] means don't run this again
+  }, []) // [] means don't run this again
 
   useEffect(() => {
     console.log('attempted to draw');
@@ -122,7 +150,7 @@ function App() {
     }
   });
 
-  function mouseClick(e : MouseEvent) {
+  function mouseClick(e: MouseEvent) {
     const canvas = canvasRef.current;
     if (canvas) {
       const rect = canvas.getBoundingClientRect();
@@ -150,7 +178,7 @@ function App() {
     }
   }
 
-  function keyDown(e : KeyboardEvent) {
+  function keyDown(e: KeyboardEvent) {
     if (e.key.length === 1) {
       if (currentSlotIndex >= 0) {
         e.preventDefault();
@@ -186,21 +214,21 @@ function App() {
         <Stack direction='row'>
           <Select placeholder='Select Form' value={formName}
             onChange={(ev) => setFormName(ev.target.value)}>
-              {
-                formChoices.map(name => (
-                  <option id={name} value={name}>{name}</option>
-                ))
-              }
+            {
+              FORM_CHOICES.map(name => (
+                <option id={name} value={name}>{name}</option>
+              ))
+            }
           </Select>
           <RadioGroup onChange={(s) => setFit(+s)} value={fit}>
             <Stack direction='row'>
-            <Radio size='lg' value={ImageFit.FitWidth}>Fit Width</Radio>
-            <Radio size='lg' value={ImageFit.FitHeight}>Fit Height</Radio>
-            <Radio value={ImageFit.FitWhole}>Fit Whole</Radio>
+              <Radio size='lg' value={ImageFit.FitWidth}>Fit Width</Radio>
+              <Radio size='lg' value={ImageFit.FitHeight}>Fit Height</Radio>
+              <Radio value={ImageFit.FitWhole}>Fit Whole</Radio>
             </Stack>
           </RadioGroup>
         </Stack>
-       <canvas ref={canvasRef} width={canvasWidth} height={canvasHeight}
+        <canvas ref={canvasRef} width={canvasWidth} height={canvasHeight}
           onClick={mouseClick} onKeyDown={keyDown} tabIndex={1}>
           This application requires HTML 5 and JavaScript]
         </canvas>
