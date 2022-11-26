@@ -49,6 +49,9 @@ function App() {
 
   const toast = useToast();
 
+  const [backendServer, setServer] = useState(accessServer("localhost", 56018));
+  const [formList, setFormList] = useState(usePromise(,backendServer.listAllForms, toast),);
+
   function usePromise<A extends unknown[], T>(promisef: (...args: A) => Promise<T> | undefined,
     args: A, toast: (opt: UseToastOptions) => unknown): T | undefined {
       let done :boolean = false;
