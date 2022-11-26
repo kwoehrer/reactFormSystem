@@ -78,10 +78,13 @@ class FileFormAccess implements FormAccess {
         this.waitTillClean();
         let result: FormDescription | undefined = undefined;
         if (this.contents !== undefined) {
-            this.contents.templates.filter(currName => currName.name === name).forEach((form) => result = form);
+            for(let i = 0; i < this.contents.templates.length; i++){
+                if(this.contents.templates[i].name === (name)){
+                    return this.contents.templates[i];
+                }
+            }
         }
 
-        return result;
     }
 
     /**
@@ -117,17 +120,21 @@ class FileFormAccess implements FormAccess {
      * @return unique id of created form or undefined if error
      */
     create(name: string, contents: string[]): string | undefined {
+        this.waitTillClean();
         let form: FormDescription | undefined = this.getForm(name);
         if (form === undefined) {
+            console.log("form undefined in local create");
             return undefined;
         }
 
         if (form.slots.length !== contents.length) {
+            console.log("incorrect slots length in local create");
             return undefined;
         }
 
         for (let i = 0; i < contents.length; i++) {
             if (contents[i] === undefined || contents[i] === null) {
+                console.log("slots error in local create");
                 return undefined;
             }
         }

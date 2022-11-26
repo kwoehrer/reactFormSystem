@@ -83,13 +83,15 @@ export function accessServer(host: string, port: number): PromiseFormAccess {
             const res: Response = await fetch(PromiseFileFormAccess.url+ "/instances/", {
                 method: "POST",
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ "form": JSON.stringify(name), "contents": JSON.stringify(contents) })
+                body: JSON.stringify({ "form": name, "contents": contents})
             });
             //This one we just want to return undefined if nothing occurs
             if (res.ok) {
                 console.log("create request successful")
                 return (res.text());
             }
+
+            console.log("create request unsuccessful... " + res.statusText);
         }
 
         /**
