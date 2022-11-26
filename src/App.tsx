@@ -112,8 +112,7 @@ function App() {
           const formImage = new Image();
           formImage.src = imageFile;
           await formImage.decode();
-
-          let cleanOptions: FormDescription = fixFormDescription(options);
+          const cleanOptions: FormDescription = fixFormDescription(formSelect);
           
           if (stillTrying) {
             setOptions(cleanOptions);
