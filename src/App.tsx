@@ -53,17 +53,22 @@ function App() {
     args: A, toast: (opt: UseToastOptions) => unknown): T | undefined {
       let done :boolean = false;
 
+      const [promResult, setPromResult] = useState<T>();
+
       const prom = promisef(...args);
-      let result : T;
+      let result : T | undefined;
 
       prom?.then((result) => {
         done = true;
         result = result;
-        const [promResult, setPromResult] = useState(result);
-        setPromResult(result);
+        if(result === undefined){
+          return undefined;
+        }else{
+          setPromResult(result);
+        }
       }).catch((err) => toast({ status: 'error', description:throwMessage(err) }));
 
-      
+      return result;
   }
 
   useEffect(() => {
