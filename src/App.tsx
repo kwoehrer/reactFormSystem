@@ -66,16 +66,18 @@ function App() {
       console.log("usePromise in use");
       const [result, setResult] = useState<T|undefined>();
 
-      const prom =  promisef(...args);
+      useEffect(() => {
+        const prom =  promisef(...args);
 
-      prom?.then((res) => {
-        console.log("Successful usePromise");
-        setResult(res);
-        console.log(result);
-      }).catch((err) => {
-        toast({ status: 'error', description:throwMessage(err) });
-        setResult(undefined);
-      });
+        prom?.then((res) => {
+          console.log("Successful usePromise");
+          setResult(res);
+          console.log(result);
+        }).catch((err) => {
+          toast({ status: 'error', description:throwMessage(err) });
+          setResult(undefined);
+        });
+      }, []);
       
       return result;
   }
