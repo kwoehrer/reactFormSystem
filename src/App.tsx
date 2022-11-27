@@ -279,7 +279,6 @@ function App() {
         if (formInstance !== undefined) {
           instanceList.push(formInstance);
         }
-
         toast({ status: 'success', description: "New instance id created: " + result });
       } else {
         toast({ status: 'error', description: "Could not create new instance of form" });
@@ -331,6 +330,7 @@ function App() {
       return currInstance.id;
     }
   };
+  
   return (
     <div className="App">
       <header className="App-header">
