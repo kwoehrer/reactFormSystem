@@ -327,9 +327,16 @@ function App() {
 
   }, [currInstance]);
 
-  const select = useCallback(async () => {
-
-  }, []);
+  const select = useCallback(async (instanceID : string) => {
+    const tempInstance = instanceList.filter((inst) => inst.id === instanceID)[0];
+    setCurrInstance(tempInstance);
+    
+    if(tempInstance !== undefined){
+      console.log("Selected from menu: Current form:" + tempInstance.form);
+      setFormName(tempInstance.form);
+      setSlotContents(tempInstance.contents);
+    }
+  }, [currInstance, formName, slotContents]);
 
   return (
     <div className="App">
@@ -362,16 +369,7 @@ function App() {
             </Button>
           </ButtonGroup>
           <Select placeholder='Select Form Instance' value={currInstance?.id} //TODO FIX THIS BUG.
-            onChange={async (ev) => {
-              const tempInstance = instanceList.filter((inst) => inst.id = ev.target.value)[0];
-              setCurrInstance(tempInstance);
-              
-              if(currInstance !== undefined){
-                console.log("Selected from menu: Current form:" + tempInstance.form);
-                setFormName(tempInstance.form);
-                setSlotContents(tempInstance.contents);
-              }
-            }}>
+            onChange={(ev) => select(ev.target.value)}>
             {
               instanceList.map(instance => (
                 <option id={instance.id} value={instance.id}>{instance.id}</option>
