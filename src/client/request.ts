@@ -122,7 +122,7 @@ export function accessServer(host: string, port: number): PromiseFormAccess {
             const res: Response = await fetch(PromiseFileFormAccess.url + "/instances/" + encodeURIComponent(id), {
                 method: "PATCH",
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ "form": JSON.stringify(id), "contents": JSON.stringify(newContents) })
+                body: JSON.stringify({ "form": id, "contents": newContents})
             });
             return (res.ok);
         }

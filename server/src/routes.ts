@@ -96,6 +96,7 @@ router.patch('/instances/:name', (req: Request, res: Response) => {
     //Test for badly formated new contents
     for (let i = 0; i < newContents.length; i++) {
         if (newContents[i] === undefined || newContents[i] === null) {
+            console.log("Router: Badly formatted patch request");
             res.sendStatus(400);
             return;
         }
@@ -105,6 +106,7 @@ router.patch('/instances/:name', (req: Request, res: Response) => {
     const result = access.replace(instanceName, newContents);
 
     if (result === undefined) {
+        console.log("Router: Badly formatted patch request");
         res.sendStatus(400);
     } else {
         res.json(result);

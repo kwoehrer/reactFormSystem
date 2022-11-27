@@ -1,8 +1,4 @@
-/* ##
-import {Text} from '@chakra-ui/react';
-## */
 import './App.css';
-// #(
 import { MouseEvent, KeyboardEvent, useEffect, useRef, useState, useInsertionEffect, useMemo, useCallback } from 'react';
 import { Button, ButtonGroup, Radio, RadioGroup, Select, Stack, useToast, UseToastOptions } from '@chakra-ui/react';
 import { Form, ImageFit } from './Form';
@@ -102,9 +98,9 @@ function App() {
     async function fetchForm() {
       console.log('Trying fetch');
       const canvas = canvasRef.current;
+
       if (formName && canvas) {
         try {
-          console.log(formName);
           const buf = await readFile(formName.replace(' ', '-') + ".json");
           const str = new TextDecoder('utf-8').decode(buf);
           const formSelect = JSON.parse(str);
@@ -121,7 +117,9 @@ function App() {
 
           if (stillTrying) {
             setOptions(cleanOptions);
+
             setSlotContents(cleanOptions.slots.map(_ => ""));
+            
             setForm(new Form(canvas, formImage, cleanOptions));
             console.log(`Successfully read form`);
           }
@@ -234,6 +232,33 @@ function App() {
   const canvasWidth = windowDims.width - HORIZ_MARGIN;
   const canvasHeight = windowDims.height - VERT_MARGIN;
 
+  //This use effect updates our render based on the state of the currInstance
+  useEffect( () => {
+    //If form of currInstance changes, change our form
+    if(currInstance === undefined){
+      return;
+    }
+    
+    setSlotContents(currInstance.contents);
+    if(formName !== currInstance.form){
+      setFormName(currInstance.form);
+    }
+
+  },[currInstance, formName]);
+
+  //Replaces an instance in the instance list.
+  const replaceInstance = (instance :FormCompletion, newInstance : FormCompletion|undefined) => {
+    
+    setInstanceList(instanceList.filter((instElem) => instElem.id !== instance.id).map((ele) => ele));
+
+    if(newInstance !== undefined){
+      instanceList.push(newInstance);
+    }
+    
+    setCurrInstance(newInstance);
+    
+  }
+
   //Submit button/create instance logic - Too custom to utilize our generic promise.
   const [isSubmitting, setIsSubmitting] = useState(false);
   const submit = useCallback(async () => {
@@ -246,6 +271,10 @@ function App() {
     if (currInstance !== undefined) {
       //Replace currInstance if we have one
       if (await backendServer.replace(currInstance.id, slotContents)) {
+        const newInstance:FormCompletion|undefined = await backendServer.getInstance(currInstance.id);
+
+
+        replaceInstance(currInstance, newInstance);
         toast({ status: 'info', description: "Updated instance " + currInstance.id });
       } else {
         toast({ status: 'error', description: "Could not update existing instance." });
@@ -286,12 +315,7 @@ function App() {
     const result = await backendServer.remove(currInstance.id);
 
     if (result) {
-      const index = instanceList.indexOf(currInstance);
-      //Remove instance from our instanceList
-      if(index !== -1){
-        instanceList.splice(index,1);
-        setCurrInstance(undefined);
-      }
+      replaceInstance(currInstance, undefined);
       toast({ status: 'success', description: "Form instance successfully withdrawn."});
     } else {
       toast({ status: 'error', description: "Could not withdraw the current form instance." });
@@ -305,8 +329,9 @@ function App() {
       <header className="App-header">
         <Stack direction='row'>
           <Select placeholder='Select Form' value={formName}
-            onChange={async (ev) => {
-              setCurrInstance(await backendServer.getInstance(ev.target.value));
+            onChange={(ev) => {
+              setFormName(ev.target.value);
+              setCurrInstance(undefined);
             }}>
             {
               formList.map(name => (
@@ -329,9 +354,14 @@ function App() {
               Withdraw
             </Button>
           </ButtonGroup>
-          <Select placeholder='Select Form Instance' value={currInstance?.id}
-            onChange={(ev) => {
-              setFormName(ev.target.value);
+          <Select placeholder='Select Form Instance' value={currInstance?.id} //TODO FIX THIS BUG.
+            onChange={async (ev) => {
+              setCurrInstance(await backendServer.getInstance(ev.target.value));
+              if(currInstance !== undefined){
+                console.log(currInstance.form);
+                setFormName(currInstance.form);
+                setSlotContents(currInstance.contents);
+              }
             }}>
             {
               instanceList.map(instance => (
