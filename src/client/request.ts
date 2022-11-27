@@ -57,7 +57,7 @@ export function accessServer(host: string, port: number): PromiseFormAccess {
             //This one we just want to return undefined if nothing occurs
             if (res.ok) {
                 if (res.body !== undefined && res.body !== null) {
-                    console.log("getForm complete")
+                    console.log("getForm complete:");
                     return res.json();
                 }
             } else{

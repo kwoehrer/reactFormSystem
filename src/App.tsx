@@ -2,15 +2,12 @@ import './App.css';
 import { MouseEvent, KeyboardEvent, useEffect, useRef, useState, useInsertionEffect, useMemo, useCallback } from 'react';
 import { Button, ButtonGroup, Radio, RadioGroup, Select, Stack, useToast, UseToastOptions } from '@chakra-ui/react';
 import { Form, ImageFit } from './Form';
-import { readFile } from './readFile';
 import { fixFormDescription, FormDescription } from './formdesc';
 import { accessServer, PromiseFormAccess } from './client/request';
-import { userInfo } from 'os';
 import { FormCompletion } from '../server/src/formdesc';
 
 const HORIZ_MARGIN = 24;
 const VERT_MARGIN = 60;
-// #)
 
 function getWindowDimensions(): { width: number; height: number; } {
   return {
@@ -91,57 +88,61 @@ function App() {
     console.log(result)
     return result;
   }
+  async function fetchForm(stillTrying : boolean) {
+    console.log('Trying fetch');
+    const canvas = canvasRef.current;
+    if (formName && canvas) {
+      try {
+        const formSelect = await backendServer.getForm(formName);
+        if(formSelect === undefined){
+          return;
+        }
+        let imageFile: string;
+        if (typeof formSelect.image === "string") {
+          imageFile = formSelect.image;
+        } else {
+          throw new Error("No image mentioned in " + formName);
+        }
+        const formImage = new Image();
+        formImage.src = imageFile;
+        await formImage.decode();
 
+        let cleanOptions: FormDescription = fixFormDescription(formSelect);
+
+        if (stillTrying) {
+          console.log("DEBUG:" + cleanOptions.name);
+          console.log("DEBUG:" + options.name);
+          //Options is more updated than clean options sometimes.. when? when we select a new instance with different types
+          setOptions(cleanOptions);
+
+          setSlotContents(cleanOptions.slots.map(_ => ""));
+          
+          setForm(new Form(canvas, formImage, cleanOptions));
+          console.log(`Successfully read form`);
+        }
+      } catch (ex) {
+        let mess: string;
+        if (typeof ex === 'string') {
+          mess = ex;
+        } else if (ex instanceof Error) {
+          mess = ex.message;
+        } else {
+          mess = 'Unknown error';
+        }
+        toast({ status: 'error', description: mess });
+      }
+    } else {
+      console.log(' ... but canvas is null');
+    }
+  }
 
   useEffect(() => {
     let stillTrying = true;
-    async function fetchForm() {
-      console.log('Trying fetch');
-      const canvas = canvasRef.current;
-
-      if (formName && canvas) {
-        try {
-          const buf = await readFile(formName.replace(' ', '-') + ".json");
-          const str = new TextDecoder('utf-8').decode(buf);
-          const formSelect = JSON.parse(str);
-          let imageFile: string;
-          if (typeof formSelect.image === "string") {
-            imageFile = formSelect.image;
-          } else {
-            throw new Error("No image mentioned in " + formName + ".json");
-          }
-          const formImage = new Image();
-          formImage.src = imageFile;
-          await formImage.decode();
-          const cleanOptions: FormDescription = fixFormDescription(formSelect);
-
-          if (stillTrying) {
-            setOptions(cleanOptions);
-
-            setSlotContents(cleanOptions.slots.map(_ => ""));
-            
-            setForm(new Form(canvas, formImage, cleanOptions));
-            console.log(`Successfully read form`);
-          }
-        } catch (ex) {
-          let mess: string;
-          if (typeof ex === 'string') {
-            mess = ex;
-          } else if (ex instanceof Error) {
-            mess = ex.message;
-          } else {
-            mess = 'Unknown error';
-          }
-          toast({ status: 'error', description: mess });
-        }
-      } else {
-        console.log(' ... but canvas is null');
-      }
-    }
-    fetchForm();
+    
+    fetchForm(stillTrying);
     return () => { stillTrying = false; }
   }, [formName, canvasRef, toast]);
-
+   
 
   useEffect(() => {
     function handleResize() {
@@ -153,7 +154,7 @@ function App() {
     return () => {
       window.removeEventListener('resize', handleResize);
     }
-  }, []) // [] means don't run this again
+  }, []); // [] means don't run this again
 
   useEffect(() => {
     console.log('attempted to draw');
@@ -161,7 +162,11 @@ function App() {
     if (form && canvas) {
       console.log('fit = ' + fit);
       form.setCurrentSlotIndex(currentSlotIndex);
-      form.setSlotContents(slotContents);
+      try{
+        form.setSlotContents(slotContents);
+      } catch(err){
+        fetchForm(true);
+      }
       form.setFit(fit);
       const gfx = canvas.getContext('2d');
       if (gfx) {
@@ -327,17 +332,22 @@ function App() {
 
   }, [currInstance]);
 
+  //determines our state by whatever we have selected.
   const select = useCallback(async (instanceID : string) => {
+    console.log("select callback: instanceID = " + instanceID);
     const tempInstance = instanceList.filter((inst) => inst.id === instanceID)[0];
     setCurrInstance(tempInstance);
     
     if(tempInstance !== undefined){
       console.log("Selected from menu: Current form:" + tempInstance.form);
+      console.log("DEBUG: "+ tempInstance.form);
+      console.log("DEBUG: "+ tempInstance.contents);
       setFormName(tempInstance.form);
       setSlotContents(tempInstance.contents);
     }
   }, [currInstance, formName, slotContents]);
 
+  //Helper method, determines current selected ID when going between pages.
   const selectedID = () => {
     if(currInstance === undefined){
       return "Select Form Instance";
