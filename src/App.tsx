@@ -338,6 +338,13 @@ function App() {
     }
   }, [currInstance, formName, slotContents]);
 
+  const selectedID = () => {
+    if(currInstance === undefined){
+      return "Select Form Instance";
+    } else{
+      return currInstance.id;
+    }
+  };
   return (
     <div className="App">
       <header className="App-header">
@@ -368,7 +375,7 @@ function App() {
               Withdraw
             </Button>
           </ButtonGroup>
-          <Select placeholder='Select Form Instance' value={currInstance?.id} //TODO FIX THIS BUG.
+          <Select placeholder='Select Form Instance' value={selectedID()}
             onChange={(ev) => select(ev.target.value)}>
             {
               instanceList.map(instance => (
