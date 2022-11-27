@@ -57,7 +57,6 @@ function App() {
   //Instance state logic
   const [instanceList, setInstanceList] = useState(Array<FormCompletion>);
   const [currInstance, setCurrInstance] = useState<FormCompletion|undefined>(undefined);
-  const [freshInstance, setFreshInstance] = useState(false);
 
   function formListParse(formList: string[]|undefined): string[]{
     if(formList === undefined){
@@ -235,7 +234,7 @@ function App() {
   const canvasWidth = windowDims.width - HORIZ_MARGIN;
   const canvasHeight = windowDims.height - VERT_MARGIN;
   
-  //Submit button/create instance logic
+  //Submit button/create instance logic - Too custom to utilize our generic promise.
   const [isSubmitting, setIsSubmitting] = useState(false);
   const submit = useCallback(async () => {
     let result :string | undefined = undefined;
@@ -245,11 +244,15 @@ function App() {
     }
 
     if(currInstance !== undefined){
-      //TODO Update this... not sure what "the same being processed means" but maybe this?
+      //Replace currInstance if we have one
       if(await backendServer.replace(currInstance.id, slotContents)){
         toast({ status: 'info', description: "Updated instance " + currInstance.id});
+      } else{
+        toast({ status: 'error', description: "Could not update existing instance."});
       }
+
     } else{
+      //When we have no currInstance, create a new one
       setIsSubmitting(true);
       result = await backendServer.create(formName, slotContents);
       setIsSubmitting(false);
@@ -267,14 +270,17 @@ function App() {
       }
     }
 
-  }, [isSubmitting, slotContents, freshInstance, currInstance]);
+  }, [isSubmitting, slotContents, currInstance]);
 
   return (
     <div className="App">
       <header className="App-header">
         <Stack direction='row'>
           <Select placeholder='Select Form' value={formName}
-            onChange={(ev) => setFormName(ev.target.value)}>
+            onChange={(ev) => {
+              setFormName(ev.target.value);
+              setCurrInstance(undefined);
+              }}>
             { 
               formList.map(name => (
                 <option id={name} value={name}>{name}</option>
