@@ -256,19 +256,13 @@ function App() {
   }
 
   //Submit button/create instance logic - Too custom to utilize our generic promise.
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const submit = useCallback(async () => {
     let result: string | undefined = undefined;
-    //Stop concurrent submits, wait for last one to finish.. instructions unclear in part 4 of react
-    if (isSubmitting) {
-      return;
-    }
 
     if (currInstance !== undefined) {
       //Replace currInstance if we have one
       if (await backendServer.replace(currInstance.id, slotContents)) {
         const newInstance: FormCompletion | undefined = await backendServer.getInstance(currInstance.id);
-
 
         replaceInstance(currInstance, newInstance);
         toast({ status: 'info', description: "Updated instance " + currInstance.id });
@@ -278,10 +272,7 @@ function App() {
       setCurrInstance(await backendServer.getInstance(currInstance.id));
     } else {
       //When we have no currInstance, create a new one
-      setIsSubmitting(true);
       result = await backendServer.create(formName, slotContents);
-      setIsSubmitting(false);
-
       if (result !== undefined) {
         const formInstance = await backendServer.getInstance(result);
         setCurrInstance(formInstance);
@@ -295,7 +286,7 @@ function App() {
       }
     }
 
-  }, [isSubmitting, slotContents, currInstance]);
+  }, [slotContents, currInstance]);
 
   //Withdraw button, cannot use callback for function so have to provide our own.
   //Does not current slots from screen, simply removes the instance in the database.
@@ -316,7 +307,6 @@ function App() {
     } else {
       toast({ status: 'error', description: "Could not withdraw the current form instance." });
     }
-
 
   }, [currInstance]);
 
@@ -364,7 +354,7 @@ function App() {
             </Stack>
           </RadioGroup>
           <ButtonGroup>
-            <Button disabled={isSubmitting} colorScheme='blue' variant='outline' onClick={submit}>
+            <Button colorScheme='blue' variant='outline' onClick={submit}>
               Submit
             </Button>
             <Button disabled={currInstance === undefined} colorScheme='blue' variant='outline' onClick={withdraw}>
