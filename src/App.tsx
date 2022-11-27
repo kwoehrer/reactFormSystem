@@ -327,6 +327,10 @@ function App() {
 
   }, [currInstance]);
 
+  const select = useCallback(async () => {
+
+  }, []);
+
   return (
     <div className="App">
       <header className="App-header">
@@ -359,11 +363,13 @@ function App() {
           </ButtonGroup>
           <Select placeholder='Select Form Instance' value={currInstance?.id} //TODO FIX THIS BUG.
             onChange={async (ev) => {
-              setCurrInstance(await backendServer.getInstance(ev.target.value));
+              const tempInstance = instanceList.filter((inst) => inst.id = ev.target.value)[0];
+              setCurrInstance(tempInstance);
+              
               if(currInstance !== undefined){
-                console.log(currInstance.form);
-                setFormName(currInstance.form);
-                setSlotContents(currInstance.contents);
+                console.log("Selected from menu: Current form:" + tempInstance.form);
+                setFormName(tempInstance.form);
+                setSlotContents(tempInstance.contents);
               }
             }}>
             {
@@ -377,9 +383,6 @@ function App() {
           onClick={mouseClick} onKeyDown={keyDown} tabIndex={1}>
           This application requires HTML 5 and JavaScript]
         </canvas>
-        {/* #)
-        <Text>TODO (after refactoring!)</Text>
-        ## */}
       </header>
     </div>
   );
