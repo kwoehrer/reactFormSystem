@@ -44,56 +44,56 @@ function App() {
   const canvasRef = useRef(null as null | HTMLCanvasElement);
   const [formName, setFormName] = useState('Add Form');
   const [fit, setFit] = useState(ImageFit.FitWidth);
-  const [form, setForm] = useState(null as null | Form); 
+  const [form, setForm] = useState(null as null | Form);
   const [currentSlotIndex, setCurrentSlotIndex] = useState(-1);
   const [slotContents, setSlotContents] = useState([] as Array<string>);
 
   const toast = useToast();
 
   const backendServer = accessServer("localhost", 56018);
-  const formList = formListParse(usePromise<[], string[]>(backendServer.listAllForms,[],toast));
-  const [options, setOptions] = useState(optionsParse(usePromise(backendServer.getForm,[formName],toast)));
+  const formList = formListParse(usePromise<[], string[]>(backendServer.listAllForms, [], toast));
+  const [options, setOptions] = useState(optionsParse(usePromise(backendServer.getForm, [formName], toast)));
 
   //Instance state logic
   const [instanceList, setInstanceList] = useState(Array<FormCompletion>);
-  const [currInstance, setCurrInstance] = useState<FormCompletion|undefined>(undefined);
+  const [currInstance, setCurrInstance] = useState<FormCompletion | undefined>(undefined);
 
-  function formListParse(formList: string[]|undefined): string[]{
-    if(formList === undefined){
+  function formListParse(formList: string[] | undefined): string[] {
+    if (formList === undefined) {
       return [];
-    } else{
+    } else {
       return formList;
     }
   }
 
-  function optionsParse(options: FormDescription|undefined): FormDescription{
-    if(options === undefined){
+  function optionsParse(options: FormDescription | undefined): FormDescription {
+    if (options === undefined) {
       return DEFAULT_OPTIONS;
-    } else{
+    } else {
       return options;
     }
   }
 
   function usePromise<A extends unknown[], T>(promisef: (...args: A) => Promise<T> | undefined,
     args: A, toast: (opt: UseToastOptions) => unknown): T | undefined {
-      console.log("usePromise in use");
-      const [result, setResult] = useState<T|undefined>();
+    console.log("usePromise in use");
+    const [result, setResult] = useState<T | undefined>();
 
-      useEffect(() => {
-        const prom =  promisef(...args);
+    useEffect(() => {
+      const prom = promisef(...args);
 
-        prom?.then((res) => {
-          console.log("Successful usePromise");
-          setResult(res);
-        }).catch((err) => {
-          toast({ status: 'error', description:throwMessage(err) });
-          setResult(undefined);
-        });
-      }, [...args, toast]);
-      
-      console.log("usePromise completed : ");
-      console.log(result)
-      return result;
+      prom?.then((res) => {
+        console.log("Successful usePromise");
+        setResult(res);
+      }).catch((err) => {
+        toast({ status: 'error', description: throwMessage(err) });
+        setResult(undefined);
+      });
+    }, [...args, toast]);
+
+    console.log("usePromise completed : ");
+    console.log(result)
+    return result;
   }
 
 
@@ -118,7 +118,7 @@ function App() {
           formImage.src = imageFile;
           await formImage.decode();
           const cleanOptions: FormDescription = fixFormDescription(formSelect);
-          
+
           if (stillTrying) {
             setOptions(cleanOptions);
             setSlotContents(cleanOptions.slots.map(_ => ""));
@@ -185,7 +185,7 @@ function App() {
       console.log(`x = ${mx}, y = ${my}`);
       let newIndex = -1;
       if (form) {
-        if(options)options.slots.forEach((sl, index) => {
+        if (options) options.slots.forEach((sl, index) => {
           const loc = sl.location;
           const x = form.cvtpctx(loc.x);
           const y = form.cvtpcty(loc.y);
@@ -201,7 +201,7 @@ function App() {
       if (newIndex !== currentSlotIndex) {
         setCurrentSlotIndex(newIndex);
       }
-    } else{
+    } else {
 
     }
   }
@@ -233,44 +233,72 @@ function App() {
   }
   const canvasWidth = windowDims.width - HORIZ_MARGIN;
   const canvasHeight = windowDims.height - VERT_MARGIN;
-  
+
   //Submit button/create instance logic - Too custom to utilize our generic promise.
   const [isSubmitting, setIsSubmitting] = useState(false);
   const submit = useCallback(async () => {
-    let result :string | undefined = undefined;
+    let result: string | undefined = undefined;
     //Stop concurrent submits, wait for last one to finish.. instructions unclear in part 4 of react
-    if(isSubmitting){
+    if (isSubmitting) {
       return;
     }
 
-    if(currInstance !== undefined){
+    if (currInstance !== undefined) {
       //Replace currInstance if we have one
-      if(await backendServer.replace(currInstance.id, slotContents)){
-        toast({ status: 'info', description: "Updated instance " + currInstance.id});
-      } else{
-        toast({ status: 'error', description: "Could not update existing instance."});
+      if (await backendServer.replace(currInstance.id, slotContents)) {
+        toast({ status: 'info', description: "Updated instance " + currInstance.id });
+      } else {
+        toast({ status: 'error', description: "Could not update existing instance." });
       }
-
-    } else{
+      setCurrInstance(await backendServer.getInstance(currInstance.id));
+    } else {
       //When we have no currInstance, create a new one
       setIsSubmitting(true);
       result = await backendServer.create(formName, slotContents);
       setIsSubmitting(false);
 
-      if(result !== undefined){
+      if (result !== undefined) {
         const formInstance = await backendServer.getInstance(result);
         setCurrInstance(formInstance);
-        if(formInstance !== undefined){
+        if (formInstance !== undefined) {
           instanceList.push(formInstance);
         }
-  
-        toast({ status: 'success', description: "New instance id created: " + result});
-      } else{
-        toast({ status: 'error', description: "Could not create new instance of form"});
+
+        toast({ status: 'success', description: "New instance id created: " + result });
+      } else {
+        toast({ status: 'error', description: "Could not create new instance of form" });
       }
     }
 
   }, [isSubmitting, slotContents, currInstance]);
+
+  //Withdraw button, cannot use callback for function so have to provide our own.
+  //Does not current slots from screen, simply removes the instance in the database.
+  const withdraw = useCallback(async () => {
+    //Narrowing conversion
+    if(currInstance === undefined){
+      console.log("currInstance was undefined when withdraw button was clickable.");
+      return;
+    }
+
+    console.log(currInstance.id);
+
+    const result = await backendServer.remove(currInstance.id);
+
+    if (result) {
+      const index = instanceList.indexOf(currInstance);
+      //Remove instance from our instanceList
+      if(index !== -1){
+        instanceList.splice(index,1);
+        setCurrInstance(undefined);
+      }
+      toast({ status: 'success', description: "Form instance successfully withdrawn."});
+    } else {
+      toast({ status: 'error', description: "Could not withdraw the current form instance." });
+    }
+
+
+  }, [currInstance]);
 
   return (
     <div className="App">
@@ -280,8 +308,8 @@ function App() {
             onChange={(ev) => {
               setFormName(ev.target.value);
               setCurrInstance(undefined);
-              }}>
-            { 
+            }}>
+            {
               formList.map(name => (
                 <option id={name} value={name}>{name}</option>
               ))
@@ -295,10 +323,10 @@ function App() {
             </Stack>
           </RadioGroup>
           <ButtonGroup>
-            <Button disabled = {isSubmitting} colorScheme= 'blue' variant= 'outline' onClick={submit}>
+            <Button disabled={isSubmitting} colorScheme='blue' variant='outline' onClick={submit}>
               Submit
             </Button>
-            <Button disabled = {currInstance === undefined} colorScheme= 'blue' variant= 'outline' onClick={withdraw}>
+            <Button disabled={currInstance === undefined} colorScheme='blue' variant='outline' onClick={withdraw}>
               withdraw
             </Button>
           </ButtonGroup>
