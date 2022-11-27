@@ -88,13 +88,14 @@ function App() {
     console.log(result)
     return result;
   }
+
   async function fetchForm(stillTrying : boolean) {
     console.log('Trying fetch');
     const canvas = canvasRef.current;
     if (formName && canvas) {
       try {
         const formSelect = await backendServer.getForm(formName);
-        if(formSelect === undefined){
+        if (formSelect === undefined) {
           return;
         }
         let imageFile: string;
@@ -114,9 +115,13 @@ function App() {
           console.log("DEBUG:" + options.name);
           //Options is more updated than clean options sometimes.. when? when we select a new instance with different types
           setOptions(cleanOptions);
-
-          setSlotContents(cleanOptions.slots.map(_ => ""));
           
+          if(currInstance){
+            setSlotContents(currInstance.contents);
+          } else{
+            setSlotContents(cleanOptions.slots.map(_ => ""));
+          }
+
           setForm(new Form(canvas, formImage, cleanOptions));
           console.log(`Successfully read form`);
         }
@@ -138,11 +143,11 @@ function App() {
 
   useEffect(() => {
     let stillTrying = true;
-    
+
     fetchForm(stillTrying);
     return () => { stillTrying = false; }
   }, [formName, canvasRef, toast]);
-   
+
 
   useEffect(() => {
     function handleResize() {
@@ -164,7 +169,7 @@ function App() {
       form.setCurrentSlotIndex(currentSlotIndex);
       try{
         form.setSlotContents(slotContents);
-      } catch(err){
+      } catch(error){
         fetchForm(true);
       }
       form.setFit(fit);
@@ -177,7 +182,7 @@ function App() {
     } else {
       console.log(`Problem: form = ${form} and canvas = ${canvas}`);
     }
-  });
+  },);
 
   function mouseClick(e: MouseEvent) {
     const canvas = canvasRef.current;
@@ -238,32 +243,32 @@ function App() {
   const canvasHeight = windowDims.height - VERT_MARGIN;
 
   //This use effect updates our render based on the state of the currInstance
-  useEffect( () => {
+  useEffect(() => {
     //If form of currInstance changes, change our form
-    if(currInstance === undefined){
+    if (currInstance === undefined) {
       return;
     }
-    
+
     setSlotContents(currInstance.contents);
-    if(formName !== currInstance.form){
+    if (formName !== currInstance.form) {
       setFormName(currInstance.form);
     }
 
-  },[currInstance, formName]);
+  }, [currInstance, formName]);
 
   //Replaces an instance in the instance list.
-  const replaceInstance = (instance :FormCompletion, newInstance : FormCompletion|undefined) => {
+  const replaceInstance = (instance: FormCompletion, newInstance: FormCompletion | undefined) => {
 
-    if(newInstance === undefined){
+    if (newInstance === undefined) {
       setInstanceList(instanceList.filter((instElem) => instElem.id !== instance.id).map((ele) => ele));
     }
 
-    if(newInstance !== undefined){
+    if (newInstance !== undefined) {
       const oldIndex = instanceList.indexOf(instance);
-      instanceList.splice(oldIndex,1);
+      instanceList.splice(oldIndex, 1);
       instanceList.push(newInstance);
     }
-    
+
     setCurrInstance(newInstance);
   }
 
@@ -279,7 +284,7 @@ function App() {
     if (currInstance !== undefined) {
       //Replace currInstance if we have one
       if (await backendServer.replace(currInstance.id, slotContents)) {
-        const newInstance:FormCompletion|undefined = await backendServer.getInstance(currInstance.id);
+        const newInstance: FormCompletion | undefined = await backendServer.getInstance(currInstance.id);
 
 
         replaceInstance(currInstance, newInstance);
@@ -313,7 +318,7 @@ function App() {
   //Does not current slots from screen, simply removes the instance in the database.
   const withdraw = useCallback(async () => {
     //Narrowing conversion
-    if(currInstance === undefined){
+    if (currInstance === undefined) {
       console.log("currInstance was undefined when withdraw button was clickable.");
       return;
     }
@@ -324,7 +329,7 @@ function App() {
 
     if (result) {
       replaceInstance(currInstance, undefined);
-      toast({ status: 'success', description: "Form instance successfully withdrawn."});
+      toast({ status: 'success', description: "Form instance successfully withdrawn." });
     } else {
       toast({ status: 'error', description: "Could not withdraw the current form instance." });
     }
@@ -333,15 +338,13 @@ function App() {
   }, [currInstance]);
 
   //determines our state by whatever we have selected.
-  const select = useCallback(async (instanceID : string) => {
+  const select = useCallback(async (instanceID: string) => {
     console.log("select callback: instanceID = " + instanceID);
     const tempInstance = instanceList.filter((inst) => inst.id === instanceID)[0];
     setCurrInstance(tempInstance);
-    
-    if(tempInstance !== undefined){
+
+    if (tempInstance !== undefined) {
       console.log("Selected from menu: Current form:" + tempInstance.form);
-      console.log("DEBUG: "+ tempInstance.form);
-      console.log("DEBUG: "+ tempInstance.contents);
       setFormName(tempInstance.form);
       setSlotContents(tempInstance.contents);
     }
@@ -349,9 +352,9 @@ function App() {
 
   //Helper method, determines current selected ID when going between pages.
   const selectedID = () => {
-    if(currInstance === undefined){
+    if (currInstance === undefined) {
       return "Select Form Instance";
-    } else{
+    } else {
       return currInstance.id;
     }
   };
