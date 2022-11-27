@@ -305,9 +305,8 @@ function App() {
       <header className="App-header">
         <Stack direction='row'>
           <Select placeholder='Select Form' value={formName}
-            onChange={(ev) => {
-              setFormName(ev.target.value);
-              setCurrInstance(undefined);
+            onChange={async (ev) => {
+              setCurrInstance(await backendServer.getInstance(ev.target.value));
             }}>
             {
               formList.map(name => (
@@ -327,9 +326,19 @@ function App() {
               Submit
             </Button>
             <Button disabled={currInstance === undefined} colorScheme='blue' variant='outline' onClick={withdraw}>
-              withdraw
+              Withdraw
             </Button>
           </ButtonGroup>
+          <Select placeholder='Select Form Instance' value={currInstance?.id}
+            onChange={(ev) => {
+              setFormName(ev.target.value);
+            }}>
+            {
+              instanceList.map(instance => (
+                <option id={instance.id} value={instance.id}>{instance.id}</option>
+              ))
+            }
+          </Select>
         </Stack>
         <canvas ref={canvasRef} width={canvasWidth} height={canvasHeight}
           onClick={mouseClick} onKeyDown={keyDown} tabIndex={1}>
