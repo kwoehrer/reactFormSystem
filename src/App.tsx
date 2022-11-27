@@ -248,15 +248,18 @@ function App() {
 
   //Replaces an instance in the instance list.
   const replaceInstance = (instance :FormCompletion, newInstance : FormCompletion|undefined) => {
-    
-    setInstanceList(instanceList.filter((instElem) => instElem.id !== instance.id).map((ele) => ele));
+
+    if(newInstance === undefined){
+      setInstanceList(instanceList.filter((instElem) => instElem.id !== instance.id).map((ele) => ele));
+    }
 
     if(newInstance !== undefined){
+      const oldIndex = instanceList.indexOf(instance);
+      instanceList.splice(oldIndex,1);
       instanceList.push(newInstance);
     }
     
     setCurrInstance(newInstance);
-    
   }
 
   //Submit button/create instance logic - Too custom to utilize our generic promise.
