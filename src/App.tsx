@@ -298,6 +298,9 @@ function App() {
             <Button disabled = {isSubmitting} colorScheme= 'blue' variant= 'outline' onClick={submit}>
               Submit
             </Button>
+            <Button disabled = {currInstance === undefined} colorScheme= 'blue' variant= 'outline' onClick={withdraw}>
+              withdraw
+            </Button>
           </ButtonGroup>
         </Stack>
         <canvas ref={canvasRef} width={canvasWidth} height={canvasHeight}
