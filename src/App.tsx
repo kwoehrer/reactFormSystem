@@ -85,7 +85,6 @@ function App() {
     }, [...args, toast]);
 
     console.log("usePromise completed : ");
-    console.log(result)
     return result;
   }
 
@@ -159,7 +158,7 @@ function App() {
     return () => {
       window.removeEventListener('resize', handleResize);
     }
-  }, []); // [] means don't run this again
+  }, []);
 
   useEffect(() => {
     console.log('attempted to draw');
@@ -209,8 +208,6 @@ function App() {
       if (newIndex !== currentSlotIndex) {
         setCurrentSlotIndex(newIndex);
       }
-    } else {
-
     }
   }
 
@@ -241,20 +238,6 @@ function App() {
   }
   const canvasWidth = windowDims.width - HORIZ_MARGIN;
   const canvasHeight = windowDims.height - VERT_MARGIN;
-
-  //This use effect updates our render based on the state of the currInstance
-  useEffect(() => {
-    //If form of currInstance changes, change our form
-    if (currInstance === undefined) {
-      return;
-    }
-
-    setSlotContents(currInstance.contents);
-    if (formName !== currInstance.form) {
-      setFormName(currInstance.form);
-    }
-
-  }, [currInstance, formName]);
 
   //Replaces an instance in the instance list.
   const replaceInstance = (instance: FormCompletion, newInstance: FormCompletion | undefined) => {
