@@ -1,5 +1,5 @@
 import './App.css';
-import { MouseEvent, KeyboardEvent, useEffect, useRef, useState, useCallback } from 'react';
+import { MouseEvent, KeyboardEvent, useEffect, useRef, useState, useCallback} from 'react';
 import { Button, ButtonGroup, Radio, RadioGroup, Select, Stack, useToast, UseToastOptions } from '@chakra-ui/react';
 import { Form, ImageFit } from './Form';
 import { fixFormDescription, FormDescription } from './formdesc';
@@ -144,11 +144,10 @@ function App() {
     let stillTrying = true;
     fetchForm(stillTrying);
     return () => { stillTrying = false; }
-    // Note to grader: disabled lint here to avoid never ending cascade as mentioned in homework
-    // description
+    // Similar to our usePromise, we have a function as a dependency. Must ignore ESLint as per
+    // Instructors suggestions
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formName, canvasRef, toast]);
-
 
   useEffect(() => {
     function handleResize() {
