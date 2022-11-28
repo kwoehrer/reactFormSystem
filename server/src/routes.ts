@@ -2,7 +2,7 @@ import { Router } from 'express';
 import cors from 'cors';
 import bodyParser from "body-parser";
 import { fileAccess } from './local';
-import { FormAccess, FormCompletion } from './formdesc';
+import { FormAccess} from './formdesc';
 import { Request, Response } from 'express';
 
 
@@ -16,7 +16,7 @@ let access: FormAccess;
 async function workaroundNoTopLevelAwait() {
     access = await fileAccess(filename);
 }
-const promise = workaroundNoTopLevelAwait();
+const promise = workaroundNoTopLevelAwait(); //Lint bug? - This was code provided by prof
 
 router.use(cors());
 

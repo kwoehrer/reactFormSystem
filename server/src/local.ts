@@ -89,8 +89,8 @@ class FileFormAccess implements FormAccess {
         }
 
         this.contents = undefined;;
-        this.templateMap = new Map<string, FormDescription>;
-        this.instanceMap = new Map<string, FormCompletion>;
+        this.templateMap = new Map<string, FormDescription>();
+        this.instanceMap = new Map<string, FormCompletion>();
         this.currentlyWriting = false;
 
         assert(() => this.wellFormed(), 'invariant failed in constructor');
@@ -205,7 +205,7 @@ class FileFormAccess implements FormAccess {
         if (this.contents !== undefined) {
             const targetInst = this.instanceMap.get(id);
             if (targetInst) {
-                if (targetInst.contents.length == newContents.length) {
+                if (targetInst.contents.length === newContents.length) {
                     targetInst.contents = newContents;
                     this.dirty = true;
                     setTimeout(() => this.writeDaemon(), 0);
