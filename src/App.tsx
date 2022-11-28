@@ -1,9 +1,9 @@
 import './App.css';
-import { MouseEvent, KeyboardEvent, useEffect, useRef, useState, useInsertionEffect, useMemo, useCallback } from 'react';
+import { MouseEvent, KeyboardEvent, useEffect, useRef, useState, useCallback } from 'react';
 import { Button, ButtonGroup, Radio, RadioGroup, Select, Stack, useToast, UseToastOptions } from '@chakra-ui/react';
 import { Form, ImageFit } from './Form';
 import { fixFormDescription, FormDescription } from './formdesc';
-import { accessServer, PromiseFormAccess } from './client/request';
+import { accessServer } from './client/request';
 import { FormCompletion } from '../server/src/formdesc';
 
 const HORIZ_MARGIN = 24;
@@ -32,7 +32,6 @@ function throwMessage(e: Error): string {
 }
 
 function App() {
-  // #(
   const [windowDims, setWindowDims] = useState(getWindowDimensions())
   const canvasRef = useRef(null as null | HTMLCanvasElement);
   const [formName, setFormName] = useState('Add Form');
@@ -43,6 +42,7 @@ function App() {
 
   const toast = useToast();
 
+  //Backend server logic
   const backendServer = accessServer("localhost", 56018);
   const formList = formListParse(usePromise<[], string[]>(backendServer.listAllForms, [], toast));
   const [options, setOptions] = useState(optionsParse(usePromise(backendServer.getForm, [formName], toast)));
@@ -88,11 +88,12 @@ function App() {
     return result;
   }
 
-  async function fetchForm(stillTrying : boolean) {
+  async function fetchForm(stillTrying: boolean) {
     console.log('Trying fetch');
     const canvas = canvasRef.current;
     if (formName && canvas) {
       try {
+        //Cannot use our custome useHook here... 
         const formSelect = await backendServer.getForm(formName);
         if (formSelect === undefined) {
           return;
@@ -110,14 +111,11 @@ function App() {
         let cleanOptions: FormDescription = fixFormDescription(formSelect);
 
         if (stillTrying) {
-          console.log("DEBUG:" + cleanOptions.name);
-          console.log("DEBUG:" + options.name);
-          //Options is more updated than clean options sometimes.. when? when we select a new instance with different types
           setOptions(cleanOptions);
-          
-          if(currInstance){
+
+          if (currInstance) {
             setSlotContents(currInstance.contents);
-          } else{
+          } else {
             setSlotContents(cleanOptions.slots.map(_ => ""));
           }
 
@@ -142,10 +140,10 @@ function App() {
 
   useEffect(() => {
     let stillTrying = true;
-
     fetchForm(stillTrying);
     return () => { stillTrying = false; }
   }, [formName, canvasRef, toast]);
+  //ELint error, cannot put fetchform as dependency or state will not update properly
 
 
   useEffect(() => {
@@ -166,9 +164,11 @@ function App() {
     if (form && canvas) {
       console.log('fit = ' + fit);
       form.setCurrentSlotIndex(currentSlotIndex);
-      try{
+      // Try catch block here ensures that we attempt to refecth the form if our current form is out
+      // of date
+      try {
         form.setSlotContents(slotContents);
-      } catch(error){
+      } catch (error) {
         fetchForm(true);
       }
       form.setFit(fit);
@@ -284,11 +284,10 @@ function App() {
         toast({ status: 'error', description: "Could not create new instance of form" });
       }
     }
+  }, [slotContents, currInstance, backendServer, toast, formName, instanceList]);
 
-  }, [slotContents, currInstance]);
-
-  //Withdraw button, cannot use callback for function so have to provide our own.
-  //Does not current slots from screen, simply removes the instance in the database.
+  //Withdraw button, cannot use callback for function tied to a button.
+  //Does not remove current slots from screen, simply removes the instance in the database.
   const withdraw = useCallback(async () => {
     //Narrowing conversion
     if (currInstance === undefined) {
@@ -296,7 +295,7 @@ function App() {
       return;
     }
 
-    console.log(currInstance.id);
+    console.log("Withdrawing " + currInstance.id);
 
     const result = await backendServer.remove(currInstance.id);
 
@@ -307,7 +306,7 @@ function App() {
       toast({ status: 'error', description: "Could not withdraw the current form instance." });
     }
 
-  }, [currInstance]);
+  }, [currInstance, backendServer, toast]); //ESLint error on helper method
 
   //determines our state by whatever we have selected.
   const select = useCallback(async (instanceID: string) => {
@@ -320,7 +319,7 @@ function App() {
       setFormName(tempInstance.form);
       setSlotContents(tempInstance.contents);
     }
-  }, [currInstance, formName, slotContents]);
+  }, [instanceList]);
 
   //Helper method, determines current selected ID when going between pages.
   const selectedID = () => {
@@ -330,7 +329,7 @@ function App() {
       return currInstance.id;
     }
   };
-  
+
   return (
     <div className="App">
       <header className="App-header">

@@ -1,4 +1,4 @@
-import { fixFormCompletion, fixFormDescription, FormAccess, FormCompletion, FormDescription } from "../formdesc";
+import {FormAccess, FormCompletion, FormDescription } from "../formdesc";
 
 // The interface to implement:
 export type Promisified<T> = {
