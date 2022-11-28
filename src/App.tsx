@@ -82,12 +82,14 @@ function App() {
         toast({ status: 'error', description: throwMessage(err) });
         setResult(undefined);
       });
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [...args, toast]);
 
     console.log("usePromise completed : ");
     return result;
   }
 
+  //Extracted fetch form for use in our form creation (IE refetch form if we need to reupdate form)
   async function fetchForm(stillTrying: boolean) {
     console.log('Trying fetch');
     const canvas = canvasRef.current;
@@ -143,7 +145,6 @@ function App() {
     fetchForm(stillTrying);
     return () => { stillTrying = false; }
   }, [formName, canvasRef, toast]);
-  //ELint error, cannot put fetchform as dependency or state will not update properly
 
 
   useEffect(() => {
@@ -239,22 +240,6 @@ function App() {
   const canvasWidth = windowDims.width - HORIZ_MARGIN;
   const canvasHeight = windowDims.height - VERT_MARGIN;
 
-  //Replaces an instance in the instance list.
-  const replaceInstance = (instance: FormCompletion, newInstance: FormCompletion | undefined) => {
-
-    if (newInstance === undefined) {
-      setInstanceList(instanceList.filter((instElem) => instElem.id !== instance.id).map((ele) => ele));
-    }
-
-    if (newInstance !== undefined) {
-      const oldIndex = instanceList.indexOf(instance);
-      instanceList.splice(oldIndex, 1);
-      instanceList.push(newInstance);
-    }
-
-    setCurrInstance(newInstance);
-  }
-
   //Submit button/create instance logic - Too custom to utilize our generic promise.
   const submit = useCallback(async () => {
     let result: string | undefined = undefined;
@@ -264,7 +249,18 @@ function App() {
       if (await backendServer.replace(currInstance.id, slotContents)) {
         const newInstance: FormCompletion | undefined = await backendServer.getInstance(currInstance.id);
 
-        replaceInstance(currInstance, newInstance);
+        if (newInstance === undefined) {
+          setInstanceList(instanceList.filter((instElem) => instElem.id !== currInstance.id).map((ele) => ele));
+        }
+
+        if (newInstance !== undefined) {
+          const oldIndex = instanceList.indexOf(currInstance);
+          instanceList.splice(oldIndex, 1);
+          instanceList.push(newInstance);
+        }
+
+        setCurrInstance(newInstance);
+
         toast({ status: 'info', description: "Updated instance " + currInstance.id });
       } else {
         toast({ status: 'error', description: "Could not update existing instance." });
@@ -292,6 +288,7 @@ function App() {
     //Narrowing conversion
     if (currInstance === undefined) {
       console.log("currInstance was undefined when withdraw button was clickable.");
+      toast({ status: 'error', description: "Could not withdraw the current form instance." });
       return;
     }
 
@@ -300,13 +297,16 @@ function App() {
     const result = await backendServer.remove(currInstance.id);
 
     if (result) {
-      replaceInstance(currInstance, undefined);
+      //Lazily removes the current element
+      setInstanceList(instanceList.filter((instElem) => instElem.id !== currInstance.id).map((ele) => ele));
+
+      setCurrInstance(undefined);
       toast({ status: 'success', description: "Form instance successfully withdrawn." });
     } else {
       toast({ status: 'error', description: "Could not withdraw the current form instance." });
     }
 
-  }, [currInstance, backendServer, toast]); //ESLint error on helper method
+  }, [currInstance, backendServer, toast, instanceList]); //ESLint error on helper
 
   //determines our state by whatever we have selected.
   const select = useCallback(async (instanceID: string) => {
@@ -318,6 +318,7 @@ function App() {
       console.log("Selected from menu: Current form:" + tempInstance.form);
       setFormName(tempInstance.form);
       setSlotContents(tempInstance.contents);
+      setCurrentSlotIndex(-1);
     }
   }, [instanceList]);
 
@@ -338,6 +339,7 @@ function App() {
             onChange={(ev) => {
               setFormName(ev.target.value);
               setCurrInstance(undefined);
+              setCurrentSlotIndex(-1);
             }}>
             {
               formList.map(name => (
