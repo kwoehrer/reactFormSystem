@@ -66,10 +66,13 @@ class FileFormAccess implements FormAccess {
         }
         this.contents = undefined;
         this.currentlyWriting = false;
+
+        assert(() => this.wellFormed(), 'invariant failed in constructor');
     }
 
     /** Return a list of all form description names. */
     listAllForms(): Array<string> {
+        assert(() => this.wellFormed(), 'invariant failed at start of listAllForms');
         let arr: Array<string> = new Array<string>();
 
         if (this.contents !== undefined) {
@@ -84,6 +87,7 @@ class FileFormAccess implements FormAccess {
      * @return form description (if the name is valid) or undefined (otherwise)
      */
     getForm(name: string): FormDescription | undefined {
+        assert(() => this.wellFormed(), 'invariant failed at start of getForm');
         let result: FormDescription | undefined = undefined;
         if (this.contents !== undefined) {
             for(let i = 0; i < this.contents.templates.length; i++){
@@ -99,6 +103,7 @@ class FileFormAccess implements FormAccess {
      * Write helper. Kind of analagous to a singleton as only one can run at at a time?
      */
     private writeDaemon() {
+        assert(() => this.wellFormed(), 'invariant failed at start of writeDaemon');
         if (this.currentlyWriting || !this.dirty) {
             return;
         }
@@ -114,6 +119,8 @@ class FileFormAccess implements FormAccess {
                 this.writeDaemon();
             }
         })
+
+        assert(() => this.wellFormed(), 'invariant failed at end of writeDaemon');
     }
 
 
@@ -128,6 +135,7 @@ class FileFormAccess implements FormAccess {
      * @return unique id of created form or undefined if error
      */
     create(name: string, contents: string[]): string | undefined {
+        assert(() => this.wellFormed(), 'invariant failed at start of create');
         let form: FormDescription | undefined = this.getForm(name);
         if (form === undefined) {
             console.log("form undefined in local create");
@@ -159,6 +167,7 @@ class FileFormAccess implements FormAccess {
         setTimeout(() => this.writeDaemon(), 0);
         console.log(instance.id);
 
+        assert(() => this.wellFormed(), 'invariant failed at end of create');
         return "" + instance.id;
     }
     /**
@@ -167,6 +176,7 @@ class FileFormAccess implements FormAccess {
      * @return the form instance information, or undefined if no such
      */
     getInstance(id: string): FormCompletion | undefined {
+        assert(() => this.wellFormed(), 'invariant failed at start of getInstance');
         let result: FormCompletion | undefined = undefined;
         if (this.contents !== undefined) {
             this.contents.instances.filter((formInstance) => formInstance.id === id).forEach((form) => result = form);
@@ -183,6 +193,7 @@ class FileFormAccess implements FormAccess {
      * @return whether the replacement was done 
      */
     replace(id: string, newContents: string[]): boolean {
+        assert(() => this.wellFormed(), 'invariant failed at start of replace');
         if (this.contents !== undefined) {
             for (let i = 0; i < this.contents.instances.length; i++) {
                 if (this.contents.instances[i].id === id) {
@@ -197,6 +208,7 @@ class FileFormAccess implements FormAccess {
                 }
             }
         }
+        assert(() => this.wellFormed(), 'invariant failed at end of replace');
         return false;
     }
 
@@ -206,6 +218,7 @@ class FileFormAccess implements FormAccess {
      * @return whether an insatnhce was delete.
      */
     remove(id: string): boolean {
+        assert(() => this.wellFormed(), 'invariant failed at start of remove');
         if (this.contents !== undefined) {
             for (let i = 0; i < this.contents.instances.length; i++) {
                 if (this.contents.instances[i].id === id) {
@@ -216,6 +229,8 @@ class FileFormAccess implements FormAccess {
                 }
             }
         }
+
+        assert(() => this.wellFormed(), 'invariant failed at end of remove');
         return false;
     }
 
@@ -225,6 +240,7 @@ class FileFormAccess implements FormAccess {
      * @returns A promise of a FormAccess instance 
      */
     async load(): Promise<FormAccess> {
+        assert(() => this.wellFormed(), 'invariant failed at start of load');
         //The only time you read from the json file.
         if (!(await this.pathExists())){
             this.dirty = true;
@@ -236,10 +252,12 @@ class FileFormAccess implements FormAccess {
         await fs.readFile(this.path, { encoding: 'utf8' }).then(value => data = value);
         let data_json = JSON.parse(data);
         this.contents = fixFormFileContents(data_json);
+        assert(() => this.wellFormed(), 'invariant failed at end of load');
         return this;
     }
 
     private async pathExists(): Promise<boolean>{
+        assert(() => this.wellFormed(), 'invariant failed at start of pathExists');
         try{
             await fs.access(this.path, fs.constants.R_OK);
             return true;
