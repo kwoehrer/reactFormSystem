@@ -36,19 +36,27 @@ function fixFormFileContents(x: any): FormFileContents {
  * JSON format. Instances of the forms can be instantiated and stored.
  */
 class FileFormAccess implements FormAccess {
-    dirty: boolean;
-    path: string;
-    contents: FormFileContents | undefined;
-    currentlyWriting: boolean;
+    private dirty: boolean;
+    private path: string;
+    private contents: FormFileContents | undefined;
+    private currentlyWriting: boolean;
     //Create a map of json with fixFormFileContents
-    //Initialize a write queue based on current structures after certain method are called.
 
-    private waitTillClean() {
-        while (this.dirty) {
-            setTimeout(() => { }, 0);
-        }
+    private wellFormed() : boolean {
+        if (!this.path) return this.report('FileFormAccess has no path.');
+        return true;
     }
 
+    private report(message : string) : boolean {
+        console.log(message);
+        return false;
+    }
+
+    /**
+     * Constructor for FileFormAccess. 
+     * @param fileName Optional String. Allows you to change the location of the file storing our
+     * form information.
+     */
     constructor(fileName?: string) {
         this.dirty = false;
         if (fileName === undefined || fileName === null) {
@@ -62,7 +70,6 @@ class FileFormAccess implements FormAccess {
 
     /** Return a list of all form description names. */
     listAllForms(): Array<string> {
-        this.waitTillClean();
         let arr: Array<string> = new Array<string>();
 
         if (this.contents !== undefined) {
@@ -77,7 +84,6 @@ class FileFormAccess implements FormAccess {
      * @return form description (if the name is valid) or undefined (otherwise)
      */
     getForm(name: string): FormDescription | undefined {
-        this.waitTillClean();
         let result: FormDescription | undefined = undefined;
         if (this.contents !== undefined) {
             for(let i = 0; i < this.contents.templates.length; i++){
@@ -122,7 +128,6 @@ class FileFormAccess implements FormAccess {
      * @return unique id of created form or undefined if error
      */
     create(name: string, contents: string[]): string | undefined {
-        this.waitTillClean();
         let form: FormDescription | undefined = this.getForm(name);
         if (form === undefined) {
             console.log("form undefined in local create");
@@ -227,7 +232,6 @@ class FileFormAccess implements FormAccess {
             this.dirty = false;
         }
 
-        this.waitTillClean();
         let data: string = "";
         await fs.readFile(this.path, { encoding: 'utf8' }).then(value => data = value);
         let data_json = JSON.parse(data);
