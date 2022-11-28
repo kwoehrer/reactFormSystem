@@ -2,10 +2,6 @@ import { assert } from './assert';
 import fs from 'fs/promises';
 import { nanoid } from 'nanoid';
 import { fixFormCompletion, fixFormDescription, FormAccess, FormCompletion, FormDescription } from './formdesc';
-import e from 'express';
-import { readFile, writeFile } from 'fs';
-import { formatWithOptions } from 'util';
-import { resourceLimits } from 'worker_threads';
 
 interface FormFileContents {
     templates: Array<FormDescription>;
@@ -42,18 +38,35 @@ class FileFormAccess implements FormAccess {
     private templateMap: Map<string, FormDescription>;
     private instanceMap: Map<string, FormCompletion>;
     private currentlyWriting: boolean;
-    //Create a map of json with fixFormFileContents
 
     private wellFormed(): boolean {
         if (!this.path) return this.report('FileFormAccess has no path.');
-        /*if (this.contents !== undefined) {
-            if ((this.contents?.instances !== Array.from(this.instanceMap.values()))) {
-                return this.report('Content instances do not match internal instance map.');
+
+        const instMapArr = Array.from(this.instanceMap.values());
+        const templateMapArr = Array.from(this.instanceMap.values());
+        if (this.contents !== undefined) {
+            for(let i = 0; i < instMapArr.length; i++){
+                if(this.contents.instances.indexOf(instMapArr[i]) === -1){
+                    return this.report('Content instances do not match internal instance map.');
+                }
             }
-            if ((this.contents?.templates !== Array.from(this.templateMap.values()))) {
-                return this.report('Content instances do not match internal instance map.');
+
+            for(let i = 0; i < instMapArr.length; i++){
+                if(this.contents.instances.indexOf(instMapArr[i]) === -1){
+                    return this.report('Content templates do not match internal templates map.');
+                }
             }
-        }*/
+        } else{
+            if(Array.from(this.templateMap.values()).length !== 0){
+                return this.report('Internal template map should be empty when contents is' +
+                'undefined');
+            }
+            if(Array.from(this.instanceMap.values()).length !== 0){
+                return this.report('Internal instance map should be empty when contents is' +
+                'undefined');
+            }
+        }
+
         return true;
     }
 
