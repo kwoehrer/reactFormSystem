@@ -31,6 +31,10 @@ function fixFormFileContents(x: any): FormFileContents {
     return result;
 }
 
+/**
+ * A file access class that provides read and write access to a series of Form classes stored in
+ * JSON format. Instances of the forms can be instantiated and stored.
+ */
 class FileFormAccess implements FormAccess {
     dirty: boolean;
     path: string;
