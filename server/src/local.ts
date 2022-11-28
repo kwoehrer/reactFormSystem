@@ -43,7 +43,7 @@ class FileFormAccess implements FormAccess {
         if (!this.path) return this.report('FileFormAccess has no path.');
 
         const instMapArr = Array.from(this.instanceMap.values());
-        const templateMapArr = Array.from(this.instanceMap.values());
+        const templateMapArr = Array.from(this.templateMap.values());
         if (this.contents !== undefined) {
             for(let i = 0; i < instMapArr.length; i++){
                 if(this.contents.instances.indexOf(instMapArr[i]) === -1){
@@ -51,17 +51,17 @@ class FileFormAccess implements FormAccess {
                 }
             }
 
-            for(let i = 0; i < instMapArr.length; i++){
-                if(this.contents.instances.indexOf(instMapArr[i]) === -1){
+            for(let i = 0; i < templateMapArr.length; i++){
+                if(this.contents.templates.indexOf(templateMapArr[i]) === -1){
                     return this.report('Content templates do not match internal templates map.');
                 }
             }
         } else{
-            if(Array.from(this.templateMap.values()).length !== 0){
+            if(templateMapArr.length !== 0){
                 return this.report('Internal template map should be empty when contents is' +
                 'undefined');
             }
-            if(Array.from(this.instanceMap.values()).length !== 0){
+            if(instMapArr.length !== 0){
                 return this.report('Internal instance map should be empty when contents is' +
                 'undefined');
             }
