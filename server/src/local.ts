@@ -250,13 +250,6 @@ class FileFormAccess implements FormAccess {
      */
     async load(): Promise<FormAccess> {
         assert(() => this.wellFormed(), 'invariant failed at start of load');
-        //The only time you read from the json file.
-        if (!(await this.pathExists())) {
-            this.dirty = true;
-            await fs.copyFile('./initial-forms.json', this.path);
-            this.dirty = false;
-        }
-
         let data: string = "";
         await fs.readFile(this.path, { encoding: 'utf8' }).then(value => data = value);
         let data_json = JSON.parse(data);
